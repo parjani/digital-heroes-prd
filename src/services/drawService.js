@@ -82,7 +82,7 @@ export async function generateAlgorithmicWinningNumbers() {
         const randomIndex =
             Math.floor(
                 Math.random() *
-                    weightedNumbers.length
+                weightedNumbers.length
             );
 
         const selectedNumber =
@@ -316,6 +316,11 @@ export async function calculateDrawResults(draw) {
                 draw.winning_numbers
             );
 
+        console.log("USER SCORES:", scores);
+        console.log("USER NUMBERS:", numbers);
+        console.log("WINNING NUMBERS:", draw.winning_numbers);
+        console.log("MATCH COUNT:", matchCount);
+
         // Only 3, 4 or 5 matches qualify
         if (matchCount >= 3) {
             results.push({
@@ -389,19 +394,19 @@ export function calculatePrizeDistribution(
     const fivePrize =
         fiveMatchWinners.length > 0
             ? fivePool /
-              fiveMatchWinners.length
+            fiveMatchWinners.length
             : 0;
 
     const fourPrize =
         fourMatchWinners.length > 0
             ? fourPool /
-              fourMatchWinners.length
+            fourMatchWinners.length
             : 0;
 
     const threePrize =
         threeMatchWinners.length > 0
             ? threePool /
-              threeMatchWinners.length
+            threeMatchWinners.length
             : 0;
 
     const distributedWinners =
