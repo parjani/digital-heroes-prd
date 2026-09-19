@@ -50,7 +50,7 @@ serve(async (req) => {
 
     // Your Vercel website URL
     const callbackUrl =
-      "https://digital-heroes-prd.vercel.app/payment-success";
+      "https://digital-heroes-prd-eosin.vercel.app/payment-success";
 
     const razorpayResponse = await fetch(
       "https://api.razorpay.com/v1/payment_links",
