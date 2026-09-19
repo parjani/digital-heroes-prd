@@ -190,46 +190,96 @@ export default function AdminDraws() {
     // CALCULATE RESULTS
     // --------------------------------------------------
 
-    async function calculateResults(draw) {
-        if (draw.status !== "simulated") {
-            alert(
-                "Only simulated draws can be calculated."
-            );
-            return;
-        }
+   async function calculateResults(draw) {
+    console.log("========== CALCULATE RESULTS START ==========");
 
-        if (!draw.winning_numbers?.length) {
-            alert(
-                "Simulate the draw first."
-            );
-            return;
-        }
+    console.log("DRAW RECEIVED:", draw);
+    console.log("DRAW ID:", draw?.id);
+    console.log("DRAW STATUS:", draw?.status);
+    console.log("DRAW WINNING NUMBERS:", draw?.winning_numbers);
 
-        setCalculating(draw.id);
+    if (draw.status !== "simulated") {
+        console.warn(
+            "Calculation stopped: draw status is not simulated.",
+            draw.status
+        );
 
-        try {
-            const drawResults =
-                await calculateDrawResults(draw);
-
-            setResults((previous) => ({
-                ...previous,
-                [draw.id]: drawResults,
-            }));
-
-            alert(
-                `Calculation complete.\n\nQualifying winners: ${drawResults.length}`
-            );
-        } catch (error) {
-            console.error(
-                "Calculate results error:",
-                error
-            );
-
-            alert(error.message);
-        } finally {
-            setCalculating(null);
-        }
+        alert(
+            "Only simulated draws can be calculated."
+        );
+        return;
     }
+
+    if (!draw.winning_numbers?.length) {
+        console.warn(
+            "Calculation stopped: no winning numbers."
+        );
+
+        alert(
+            "Simulate the draw first."
+        );
+        return;
+    }
+
+    setCalculating(draw.id);
+
+    try {
+        console.log(
+            "Calling calculateDrawResults()..."
+        );
+
+        const drawResults =
+            await calculateDrawResults(draw);
+
+        console.log(
+            "========== DRAW RESULTS =========="
+        );
+
+        console.log(
+            "Qualifying results:",
+            drawResults
+        );
+
+        console.log(
+            "Number of qualifying winners:",
+            drawResults.length
+        );
+
+        setResults((previous) => ({
+            ...previous,
+            [draw.id]: drawResults,
+        }));
+
+        alert(
+            `Calculation complete.\n\nQualifying winners: ${drawResults.length}`
+        );
+
+    } catch (error) {
+        console.error(
+            "Calculate results error:",
+            error
+        );
+
+        console.error(
+            "Error message:",
+            error?.message
+        );
+
+        console.error(
+            "Error stack:",
+            error?.stack
+        );
+
+        alert(error.message);
+
+    } finally {
+        setCalculating(null);
+
+        console.log(
+            "========== CALCULATE RESULTS END =========="
+        );
+    }
+}
 
     // --------------------------------------------------
     // SAVE RESULTS

@@ -122,18 +122,26 @@ export function calculateMatchCount(
 // --------------------------------------------------
 
 export async function getLatestFiveScores(userId) {
+    console.log("===== getLatestFiveScores START =====");
+    console.log("USER ID RECEIVED:", userId);
+
     const { data, error } = await supabase
         .from("scores")
-        .select("id, score, score_date")
+        .select("id, user_id, score, score_date")
         .eq("user_id", userId)
-        .order("score_date", {
-            ascending: false,
-        })
+        .order("score_date", { ascending: false })
         .limit(5);
 
+    console.log("SCORES QUERY DATA:", data);
+    console.log("SCORES QUERY ERROR:", error);
+
     if (error) {
-        throw error;
+        console.error("getLatestFiveScores ERROR:", error);
+        return [];
     }
+
+    console.log("SCORES COUNT:", data?.length || 0);
+    console.log("===== getLatestFiveScores END =====");
 
     return data || [];
 }
@@ -273,10 +281,10 @@ async function getEligibleSubscriptions() {
 // --------------------------------------------------
 
 export async function calculateDrawResults(draw) {
+    console.log("===== calculateDrawResults START =====");
+
     if (!draw?.id) {
-        throw new Error(
-            "Invalid draw."
-        );
+        throw new Error("Invalid draw.");
     }
 
     if (!draw?.winning_numbers?.length) {
@@ -285,29 +293,83 @@ export async function calculateDrawResults(draw) {
         );
     }
 
+    console.log(
+        "Winning numbers:",
+        draw.winning_numbers
+    );
+
     const subscriptions =
         await getEligibleSubscriptions();
 
+    console.log(
+        "ELIGIBLE SUBSCRIPTIONS:",
+        subscriptions
+    );
+
+    console.log(
+        "ELIGIBLE SUBSCRIPTIONS COUNT:",
+        subscriptions.length
+    );
+
     if (!subscriptions.length) {
+        console.warn(
+            "NO ELIGIBLE SUBSCRIPTIONS"
+        );
         return [];
     }
 
     const results = [];
 
+    console.log(
+        "STARTING SUBSCRIPTION LOOP"
+    );
+
     for (const subscription of subscriptions) {
+
+        console.log(
+            "--------------------------------"
+        );
+
+        console.log(
+            "CHECKING USER:",
+            subscription.user_id
+        );
 
         const scores =
             await getLatestFiveScores(
                 subscription.user_id
             );
 
-        // User needs exactly 5 scores
+        console.log(
+            "USER SCORES:",
+            scores
+        );
+
+        console.log(
+            "NUMBER OF SCORES:",
+            scores.length
+        );
+
         if (scores.length < 5) {
+            console.warn(
+                "USER SKIPPED - LESS THAN 5 SCORES:",
+                subscription.user_id
+            );
             continue;
         }
 
         const numbers = scores.map(
             (item) => Number(item.score)
+        );
+
+        console.log(
+            "USER NUMBERS:",
+            numbers
+        );
+
+        console.log(
+            "DRAW NUMBERS:",
+            draw.winning_numbers
         );
 
         const matchCount =
@@ -316,25 +378,50 @@ export async function calculateDrawResults(draw) {
                 draw.winning_numbers
             );
 
-        console.log("USER SCORES:", scores);
-        console.log("USER NUMBERS:", numbers);
-        console.log("WINNING NUMBERS:", draw.winning_numbers);
-        console.log("MATCH COUNT:", matchCount);
+        console.log(
+            "MATCH COUNT:",
+            matchCount
+        );
 
-        // Only 3, 4 or 5 matches qualify
         if (matchCount >= 3) {
+
+            console.log(
+                "✅ QUALIFIED:",
+                subscription.user_id
+            );
+
             results.push({
                 user_id:
                     subscription.user_id,
 
-                draw_id: draw.id,
+                draw_id:
+                    draw.id,
 
                 numbers,
 
-                match_count: matchCount,
+                match_count:
+                    matchCount,
             });
+
+        } else {
+
+            console.log(
+                "❌ NOT QUALIFIED:",
+                subscription.user_id,
+                "matches:",
+                matchCount
+            );
         }
     }
+
+    console.log(
+        "FINAL RESULTS:",
+        results
+    );
+
+    console.log(
+        "===== calculateDrawResults END ====="
+    );
 
     return results;
 }

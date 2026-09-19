@@ -32,6 +32,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import UserHeader from "./components/UserHeader";
 import AdminHeader from "./components/AdminHeader";
+import DemoPayment from "./pages/DemoPayment";
 
 
 /* =========================================
@@ -168,6 +169,8 @@ function App() {
       />
 
 
+
+
       {/* =====================================
           USER PAGES
       ====================================== */}
@@ -187,6 +190,15 @@ function App() {
           <UserRoute>
             <Scores />
           </UserRoute>
+        }
+      />
+
+      <Route
+        path="/demo-payment"
+        element={
+          <ProtectedRoute>
+            <DemoPayment />
+          </ProtectedRoute>
         }
       />
 
