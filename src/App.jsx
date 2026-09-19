@@ -33,6 +33,8 @@ import Footer from "./components/Footer";
 import UserHeader from "./components/UserHeader";
 import AdminHeader from "./components/AdminHeader";
 import DemoPayment from "./pages/DemoPayment";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailure from "./pages/PaymentFailure";
 
 
 /* =========================================
@@ -289,6 +291,17 @@ function App() {
       {/* =====================================
           FALLBACK
       ====================================== */}
+
+      <Route
+        path="/payment-success"
+        element={<PaymentSuccess />}
+      />
+
+      <Route
+        path="/payment-failure"
+        element={<PaymentFailure />}
+      />
+
 
       <Route
         path="*"

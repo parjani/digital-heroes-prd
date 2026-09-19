@@ -8,9 +8,12 @@ function DemoPayment() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const { plan = "monthly", amount = 499 } = location.state || {};
+    const { plan = "monthly", amount = 499 } =
+        location.state || {};
 
-    const [paymentMethod, setPaymentMethod] = useState("upi");
+    const [paymentMethod, setPaymentMethod] =
+        useState("upi");
+
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
@@ -43,7 +46,7 @@ function DemoPayment() {
 
     const handlePayment = async () => {
         if (!user) {
-            setError("You must be logged in.");
+            setError("You must be logged in to continue.");
             return;
         }
 
@@ -51,49 +54,91 @@ function DemoPayment() {
         setError("");
 
         try {
-            // Demo payment delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            const now = new Date();
-            const endDate = new Date(now);
-
-            if (plan === "monthly") {
-                endDate.setMonth(endDate.getMonth() + 1);
-            } else {
-                endDate.setFullYear(endDate.getFullYear() + 1);
-            }
-
-            const { error: paymentError } = await supabase
+            /*
+             * Check whether the user already has
+             * an active subscription.
+             */
+            const {
+                data: existingSubscription,
+                error: checkError,
+            } = await supabase
                 .from("subscriptions")
-                .insert({
-                    user_id: user.id,
-                    plan,
-                    amount,
-                    currency: "INR",
-                    status: "active",
-                    start_date: now.toISOString(),
-                    renewal_date: endDate.toISOString(),
-                    current_period_start: now.toISOString(),
-                    current_period_end: endDate.toISOString(),
-                    cancel_at_period_end: false,
-                });
+                .select("id, status")
+                .eq("user_id", user.id)
+                .eq("status", "active")
+                .maybeSingle();
 
-            if (paymentError) {
-                throw paymentError;
+            if (checkError) {
+                throw checkError;
             }
 
-            navigate("/dashboard", {
-                state: {
-                    paymentSuccess: true,
-                    message: `${plan === "monthly" ? "Monthly" : "Yearly"} subscription activated successfully.`,
-                },
-            });
-        } catch (err) {
-            console.error("Demo payment error:", err);
-            setError(
-                err.message || "Demo payment failed. Please try again."
+            if (existingSubscription) {
+                setError(
+                    "You already have an active subscription."
+                );
+                setSaving(false);
+                return;
+            }
+
+            /*
+             * Create Razorpay hosted Payment Link
+             * through the Supabase Edge Function.
+             *
+             * IMPORTANT:
+             * The Razorpay secret never comes to the frontend.
+             */
+            const {
+                data: paymentData,
+                error: functionError,
+            } = await supabase.functions.invoke(
+                "create-razorpay-payment-link",
+                {
+                    body: {
+                        plan,
+                        userId: user.id,
+                        email: user.email,
+                    },
+                }
             );
-        } finally {
+
+            if (functionError) {
+                console.error(
+                    "Payment link function error:",
+                    functionError
+                );
+
+                throw new Error(
+                    functionError.message ||
+                        "Unable to create payment link."
+                );
+            }
+
+            if (!paymentData?.paymentUrl) {
+                throw new Error(
+                    paymentData?.error ||
+                        "Unable to create Razorpay payment link."
+                );
+            }
+
+            /*
+             * Redirect the user to Razorpay's
+             * hosted payment page.
+             *
+             * This does NOT open the Razorpay popup.
+             */
+            window.location.href =
+                paymentData.paymentUrl;
+        } catch (err) {
+            console.error(
+                "Razorpay payment error:",
+                err
+            );
+
+            setError(
+                err?.message ||
+                    "Unable to start payment. Please try again."
+            );
+
             setSaving(false);
         }
     };
@@ -101,18 +146,21 @@ function DemoPayment() {
     return (
         <div className="min-h-screen bg-[#f3f1e8] text-[#101813]">
             <main className="max-w-6xl mx-auto px-6 lg:px-10 py-12">
-
                 {/* Header */}
                 <section className="border-b border-[#cfd4c8] pb-8">
                     <button
-                        onClick={() => navigate("/dashboard/subscription")}
+                        onClick={() =>
+                            navigate(
+                                "/dashboard/subscription"
+                            )
+                        }
                         className="text-sm text-[#47775f] hover:underline"
                     >
                         ← Back to membership
                     </button>
 
                     <p className="mt-10 text-xs uppercase tracking-[0.2em] font-semibold text-[#47775f]">
-                        § Demo Payment
+                        § Payment
                     </p>
 
                     <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-[-0.04em]">
@@ -120,14 +168,13 @@ function DemoPayment() {
                     </h1>
 
                     <p className="mt-4 text-[#687169]">
-                        This is a demo payment screen. No real money will be
-                        charged.
+                        You will be redirected to the
+                        Razorpay secure payment page.
                     </p>
                 </section>
 
                 <div className="grid lg:grid-cols-[1fr_360px] gap-8 mt-10">
-
-                    {/* Payment methods */}
+                    {/* Payment Methods */}
                     <section>
                         <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
                             Payment method
@@ -136,14 +183,17 @@ function DemoPayment() {
                         <div className="mt-5 border border-[#cfd4c8]">
                             {paymentMethods.map((method) => {
                                 const selected =
-                                    paymentMethod === method.id;
+                                    paymentMethod ===
+                                    method.id;
 
                                 return (
                                     <button
                                         key={method.id}
                                         type="button"
                                         onClick={() =>
-                                            setPaymentMethod(method.id)
+                                            setPaymentMethod(
+                                                method.id
+                                            )
                                         }
                                         className={`w-full text-left p-5 border-b last:border-b-0 border-[#cfd4c8] transition ${
                                             selected
@@ -152,7 +202,6 @@ function DemoPayment() {
                                         }`}
                                     >
                                         <div className="flex items-center gap-4">
-
                                             <div
                                                 className={`w-11 h-11 border flex items-center justify-center text-lg ${
                                                     selected
@@ -160,16 +209,22 @@ function DemoPayment() {
                                                         : "border-[#cfd4c8]"
                                                 }`}
                                             >
-                                                {method.icon}
+                                                {
+                                                    method.icon
+                                                }
                                             </div>
 
                                             <div className="flex-1">
                                                 <p className="font-semibold">
-                                                    {method.name}
+                                                    {
+                                                        method.name
+                                                    }
                                                 </p>
 
                                                 <p className="mt-1 text-sm text-[#687169]">
-                                                    {method.description}
+                                                    {
+                                                        method.description
+                                                    }
                                                 </p>
                                             </div>
 
@@ -190,25 +245,34 @@ function DemoPayment() {
                             })}
                         </div>
 
-                        {/* Demo details */}
+                        {/* Razorpay information */}
                         <div className="mt-6 border border-[#cfd4c8] bg-[#f8f7f1] p-6">
                             <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
-                                Demo mode
+                                Razorpay payment
                             </p>
 
                             <p className="mt-3 text-sm text-[#687169] leading-6">
-                                No real payment gateway is connected. Clicking
-                                the payment button below will simulate a
-                                successful payment and activate your
-                                subscription.
+                                After clicking the payment
+                                button, you will be redirected
+                                to the Razorpay hosted payment
+                                page to complete your payment.
                             </p>
+
+                            <div className="mt-4 pt-4 border-t border-[#cfd4c8]">
+                                <p className="text-xs text-[#8a918b]">
+                                    Test environment
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium text-[#38644f]">
+                                    Razorpay Test Mode
+                                </p>
+                            </div>
                         </div>
                     </section>
 
-                    {/* Order summary */}
+                    {/* Order Summary */}
                     <aside>
                         <div className="border border-[#cfd4c8] bg-[#f8f7f1] p-7 sticky top-6">
-
                             <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
                                 Order summary
                             </p>
@@ -230,7 +294,12 @@ function DemoPayment() {
                                     </span>
 
                                     <span className="font-semibold">
-                                        ₹{amount.toLocaleString("en-IN")}
+                                        ₹
+                                        {Number(
+                                            amount
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        )}
                                     </span>
                                 </div>
 
@@ -251,28 +320,40 @@ function DemoPayment() {
                                 </span>
 
                                 <span className="text-2xl font-semibold">
-                                    ₹{amount.toLocaleString("en-IN")}
+                                    ₹
+                                    {Number(
+                                        amount
+                                    ).toLocaleString(
+                                        "en-IN"
+                                    )}
                                 </span>
                             </div>
 
+                            {/* Error */}
                             {error && (
                                 <div className="mb-5 border border-red-200 bg-[#f8e9e5] px-4 py-3 text-sm text-red-700">
                                     {error}
                                 </div>
                             )}
 
+                            {/* Pay button */}
                             <button
                                 onClick={handlePayment}
                                 disabled={saving}
                                 className="w-full px-6 py-4 bg-[#47775f] text-white text-sm font-semibold hover:bg-[#38644f] disabled:opacity-50 transition"
                             >
                                 {saving
-                                    ? "Processing payment..."
-                                    : `Pay ₹${amount.toLocaleString("en-IN")} →`}
+                                    ? "Redirecting to Razorpay..."
+                                    : `Pay ₹${Number(
+                                          amount
+                                      ).toLocaleString(
+                                          "en-IN"
+                                      )} →`}
                             </button>
 
                             <p className="mt-4 text-center text-xs text-[#8a918b]">
-                                Demo payment · No real money charged
+                                Secure payment · Razorpay
+                                Test Mode
                             </p>
                         </div>
                     </aside>
