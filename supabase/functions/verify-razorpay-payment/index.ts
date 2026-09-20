@@ -8,6 +8,104 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+/*
+ * Convert bytes to hexadecimal string.
+ */
+function bytesToHex(bytes: Uint8Array) {
+  return Array.from(bytes)
+    .map((byte) =>
+      byte.toString(16).padStart(2, "0")
+    )
+    .join("");
+}
+
+/*
+ * Generate Razorpay Payment Link callback signature.
+ *
+ * Razorpay signature payload:
+ *
+ * payment_link_id
+ * |
+ * payment_link_reference_id
+ * |
+ * payment_link_status
+ * |
+ * payment_id
+ *
+ * HMAC SHA256 using Razorpay Key Secret.
+ */
+async function generatePaymentLinkSignature(
+  paymentLinkId: string,
+  paymentLinkReferenceId: string,
+  paymentLinkStatus: string,
+  paymentId: string,
+  secret: string
+) {
+  const payload =
+    `${paymentLinkId}|${paymentLinkReferenceId}|${paymentLinkStatus}|${paymentId}`;
+
+  const encoder =
+    new TextEncoder();
+
+  const keyData =
+    encoder.encode(secret);
+
+  const messageData =
+    encoder.encode(payload);
+
+  const cryptoKey =
+    await crypto.subtle.importKey(
+      "raw",
+      keyData,
+      {
+        name: "HMAC",
+        hash: "SHA-256",
+      },
+      false,
+      ["sign"]
+    );
+
+  const signature =
+    await crypto.subtle.sign(
+      "HMAC",
+      cryptoKey,
+      messageData
+    );
+
+  return bytesToHex(
+    new Uint8Array(signature)
+  );
+}
+
+/*
+ * Compare signatures safely.
+ */
+function signaturesMatch(
+  actual: string,
+  expected: string
+) {
+  if (
+    actual.length !==
+    expected.length
+  ) {
+    return false;
+  }
+
+  let result = 0;
+
+  for (
+    let i = 0;
+    i < actual.length;
+    i++
+  ) {
+    result |=
+      actual.charCodeAt(i) ^
+      expected.charCodeAt(i);
+  }
+
+  return result === 0;
+}
+
 serve(async (req) => {
   /*
    * Handle CORS preflight request.
@@ -31,7 +129,8 @@ serve(async (req) => {
         status: 405,
         headers: {
           ...corsHeaders,
-          "Content-Type": "application/json",
+          "Content-Type":
+            "application/json",
         },
       }
     );
@@ -39,40 +138,75 @@ serve(async (req) => {
 
   try {
     /*
-     * Get data sent from PaymentSuccess.jsx.
+     * ---------------------------------------------------
+     * STEP 1
+     * Get Razorpay callback data.
+     * ---------------------------------------------------
      */
     const {
       razorpay_payment_id,
       razorpay_payment_link_id,
       razorpay_payment_link_reference_id,
+      razorpay_payment_link_status,
+      razorpay_signature,
     } = await req.json();
 
     /*
-     * Payment ID is required.
+     * ---------------------------------------------------
+     * STEP 2
+     * Validate required callback parameters.
+     * ---------------------------------------------------
      */
+
     if (!razorpay_payment_id) {
-      throw new Error("Razorpay payment ID is missing.");
+      throw new Error(
+        "Razorpay payment ID is missing."
+      );
     }
 
-    /*
-     * Payment Link ID is required.
-     */
     if (!razorpay_payment_link_id) {
       throw new Error(
         "Razorpay payment link ID is missing."
       );
     }
 
+    if (
+      !razorpay_payment_link_reference_id
+    ) {
+      throw new Error(
+        "Razorpay payment link reference ID is missing."
+      );
+    }
+
+    if (!razorpay_payment_link_status) {
+      throw new Error(
+        "Razorpay payment link status is missing."
+      );
+    }
+
+    if (!razorpay_signature) {
+      throw new Error(
+        "Razorpay signature is missing."
+      );
+    }
+
     /*
-     * Razorpay credentials.
+     * ---------------------------------------------------
+     * STEP 3
+     * Get Razorpay credentials.
      *
-     * These are stored in Supabase Edge Function secrets.
-     * NEVER put RAZORPAY_KEY_SECRET in React/Vite.
+     * These MUST remain in Supabase secrets.
+     * ---------------------------------------------------
      */
-    const keyId = Deno.env.get("RAZORPAY_KEY_ID");
-    const keySecret = Deno.env.get(
-      "RAZORPAY_KEY_SECRET"
-    );
+    const keyId =
+      Deno.env.get(
+        "RAZORPAY_KEY_ID"
+      );
+
+    const keySecret =
+      Deno.env.get(
+        "RAZORPAY_KEY_SECRET"
+      );
 
     if (!keyId || !keySecret) {
       throw new Error(
@@ -81,13 +215,54 @@ serve(async (req) => {
     }
 
     /*
-     * Supabase server-side credentials.
+     * ---------------------------------------------------
+     * STEP 4
+     * Verify Razorpay callback signature.
      *
-     * SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
-     * are used only inside this Edge Function.
+     * This is extremely important.
+     *
+     * We do NOT trust the payment information simply
+     * because it came through the browser URL.
+     * ---------------------------------------------------
+     */
+    const expectedSignature =
+      await generatePaymentLinkSignature(
+        razorpay_payment_link_id,
+        razorpay_payment_link_reference_id,
+        razorpay_payment_link_status,
+        razorpay_payment_id,
+        keySecret
+      );
+
+    const signatureIsValid =
+      signaturesMatch(
+        razorpay_signature,
+        expectedSignature
+      );
+
+    if (!signatureIsValid) {
+      throw new Error(
+        "Invalid Razorpay payment signature."
+      );
+    }
+
+    /*
+     * Signature is valid.
+     */
+    console.log(
+      "Razorpay payment signature verified."
+    );
+
+    /*
+     * ---------------------------------------------------
+     * STEP 5
+     * Create Supabase admin client.
+     * ---------------------------------------------------
      */
     const supabaseUrl =
-      Deno.env.get("SUPABASE_URL");
+      Deno.env.get(
+        "SUPABASE_URL"
+      );
 
     const supabaseServiceRoleKey =
       Deno.env.get(
@@ -103,40 +278,34 @@ serve(async (req) => {
       );
     }
 
-    /*
-     * Create Supabase admin client.
-     *
-     * This bypasses normal RLS policies.
-     * It must NEVER be exposed to the frontend.
-     */
-    const supabaseAdmin = createClient(
-      supabaseUrl,
-      supabaseServiceRoleKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseAdmin =
+      createClient(
+        supabaseUrl,
+        supabaseServiceRoleKey,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
+      );
 
     /*
+     * ---------------------------------------------------
+     * STEP 6
      * Razorpay Basic Authentication.
+     * ---------------------------------------------------
      */
-    const auth = btoa(
-      `${keyId}:${keySecret}`
-    );
+    const auth =
+      btoa(
+        `${keyId}:${keySecret}`
+      );
 
     /*
      * ---------------------------------------------------
-     * STEP 1
-     * Fetch the Payment Link from Razorpay.
+     * STEP 7
+     * Fetch Payment Link directly from Razorpay.
      * ---------------------------------------------------
-     *
-     * We do NOT trust userId or plan from the frontend.
-     *
-     * Instead, we get them from the Payment Link notes
-     * that were created by create-razorpay-payment-link.
      */
     const paymentLinkResponse =
       await fetch(
@@ -144,7 +313,8 @@ serve(async (req) => {
         {
           method: "GET",
           headers: {
-            Authorization: `Basic ${auth}`,
+            Authorization:
+              `Basic ${auth}`,
           },
         }
       );
@@ -152,21 +322,24 @@ serve(async (req) => {
     const paymentLinkData =
       await paymentLinkResponse.json();
 
-    if (!paymentLinkResponse.ok) {
+    if (
+      !paymentLinkResponse.ok
+    ) {
       console.error(
         "Razorpay Payment Link error:",
         paymentLinkData
       );
 
       throw new Error(
-        paymentLinkData?.error?.description ||
+        paymentLinkData?.error
+          ?.description ||
           "Unable to verify Razorpay Payment Link."
       );
     }
 
     /*
-     * Make sure the Payment Link belongs to
-     * the payment link ID received by our app.
+     * Make sure the returned Payment Link ID
+     * matches the callback Payment Link ID.
      */
     if (
       paymentLinkData.id !==
@@ -179,12 +352,13 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 2
-     * Payment Link must be PAID.
+     * STEP 8
+     * Verify Payment Link status.
      * ---------------------------------------------------
      */
     if (
-      paymentLinkData.status !== "paid"
+      paymentLinkData.status !==
+      "paid"
     ) {
       throw new Error(
         `Payment Link is not paid. Current status: ${paymentLinkData.status}`
@@ -192,13 +366,27 @@ serve(async (req) => {
     }
 
     /*
+     * Also make sure the status that Razorpay
+     * signed matches the actual Payment Link status.
+     */
+    if (
+      razorpay_payment_link_status !==
+      paymentLinkData.status
+    ) {
+      throw new Error(
+        "Payment Link status does not match Razorpay."
+      );
+    }
+
+    /*
      * ---------------------------------------------------
-     * STEP 3
-     * Verify currency.
+     * STEP 9
+     * Verify Payment Link currency.
      * ---------------------------------------------------
      */
     if (
-      paymentLinkData.currency !== "INR"
+      paymentLinkData.currency !==
+      "INR"
     ) {
       throw new Error(
         "Payment currency is not INR."
@@ -207,16 +395,11 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 4
-     * Get user ID and plan from Razorpay notes.
+     * STEP 10
+     * Get application data from Payment Link notes.
      *
-     * These notes were created here:
-     *
-     * notes: {
-     *   plan,
-     *   user_id: userId,
-     *   source: "digital-heroes"
-     * }
+     * These values were stored when the Payment Link
+     * was created.
      * ---------------------------------------------------
      */
     const notes =
@@ -231,17 +414,24 @@ serve(async (req) => {
     const source =
       notes.source;
 
+    /*
+     * User ID must exist.
+     */
     if (!userId) {
       throw new Error(
         "User ID was not found in the Razorpay Payment Link."
       );
     }
 
+    /*
+     * Plan must be monthly or yearly.
+     */
     if (
       !plan ||
-      !["monthly", "yearly"].includes(
-        plan
-      )
+      ![
+        "monthly",
+        "yearly",
+      ].includes(plan)
     ) {
       throw new Error(
         "Invalid subscription plan in Razorpay Payment Link."
@@ -250,10 +440,11 @@ serve(async (req) => {
 
     /*
      * Make sure this Payment Link was created
-     * by our Digital Heroes application.
+     * by Digital Heroes.
      */
     if (
-      source !== "digital-heroes"
+      source !==
+      "digital-heroes"
     ) {
       throw new Error(
         "Invalid Payment Link source."
@@ -262,10 +453,10 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 5
-     * Verify expected amount.
+     * STEP 11
+     * Verify expected subscription amount.
      *
-     * Razorpay uses paise:
+     * Razorpay amount is in paise:
      *
      * ₹499  = 49900
      * ₹4999 = 499900
@@ -277,8 +468,9 @@ serve(async (req) => {
         : 499900;
 
     if (
-      Number(paymentLinkData.amount) !==
-      expectedAmount
+      Number(
+        paymentLinkData.amount
+      ) !== expectedAmount
     ) {
       throw new Error(
         "Payment Link amount does not match the subscription plan."
@@ -287,40 +479,8 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 6
-     * Make sure the payment ID received from
-     * the callback actually belongs to this Payment Link.
-     *
-     * Razorpay returns captured payments inside
-     * the Payment Link's payments array.
-     * ---------------------------------------------------
-     */
-    const payments =
-      Array.isArray(
-        paymentLinkData.payments
-      )
-        ? paymentLinkData.payments
-        : [];
-
-    const linkedPayment =
-      payments.find(
-        (payment: any) =>
-          payment.id ===
-          razorpay_payment_id
-      );
-
-    if (!linkedPayment) {
-      throw new Error(
-        "Payment does not belong to this Payment Link."
-      );
-    }
-
-    /*
-     * ---------------------------------------------------
-     * STEP 7
+     * STEP 12
      * Fetch the actual payment directly from Razorpay.
-     *
-     * This gives us an additional backend verification.
      * ---------------------------------------------------
      */
     const paymentResponse =
@@ -329,7 +489,8 @@ serve(async (req) => {
         {
           method: "GET",
           headers: {
-            Authorization: `Basic ${auth}`,
+            Authorization:
+              `Basic ${auth}`,
           },
         }
       );
@@ -337,23 +498,30 @@ serve(async (req) => {
     const paymentData =
       await paymentResponse.json();
 
-    if (!paymentResponse.ok) {
+    if (
+      !paymentResponse.ok
+    ) {
       console.error(
         "Razorpay payment verification error:",
         paymentData
       );
 
       throw new Error(
-        paymentData?.error?.description ||
+        paymentData?.error
+          ?.description ||
           "Unable to verify Razorpay payment."
       );
     }
 
     /*
+     * ---------------------------------------------------
+     * STEP 13
      * Payment must be captured.
+     * ---------------------------------------------------
      */
     if (
-      paymentData.status !== "captured"
+      paymentData.status !==
+      "captured"
     ) {
       throw new Error(
         `Payment is not captured. Current status: ${paymentData.status}`
@@ -362,14 +530,14 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 8
-     * Verify payment amount again using the
-     * actual payment object.
+     * STEP 14
+     * Verify actual payment amount.
      * ---------------------------------------------------
      */
     if (
-      Number(paymentData.amount) !==
-      expectedAmount
+      Number(
+        paymentData.amount
+      ) !== expectedAmount
     ) {
       throw new Error(
         "Actual payment amount does not match the subscription plan."
@@ -377,10 +545,14 @@ serve(async (req) => {
     }
 
     /*
-     * Verify currency again.
+     * ---------------------------------------------------
+     * STEP 15
+     * Verify actual payment currency.
+     * ---------------------------------------------------
      */
     if (
-      paymentData.currency !== "INR"
+      paymentData.currency !==
+      "INR"
     ) {
       throw new Error(
         "Actual payment currency is not INR."
@@ -389,22 +561,30 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 9
-     * Check whether the user already has
-     * an active subscription.
+     * STEP 16
+     * Check for an existing active subscription.
      * ---------------------------------------------------
      */
     const {
       data: existingSubscription,
-      error: existingSubscriptionError,
+      error:
+        existingSubscriptionError,
     } = await supabaseAdmin
       .from("subscriptions")
       .select("*")
-      .eq("user_id", userId)
-      .eq("status", "active")
+      .eq(
+        "user_id",
+        userId
+      )
+      .eq(
+        "status",
+        "active"
+      )
       .maybeSingle();
 
-    if (existingSubscriptionError) {
+    if (
+      existingSubscriptionError
+    ) {
       console.error(
         "Existing subscription lookup error:",
         existingSubscriptionError
@@ -414,11 +594,8 @@ serve(async (req) => {
     }
 
     /*
-     * If the subscription is already active,
-     * don't create another one.
-     *
-     * This makes the function safer if the user
-     * refreshes the success page.
+     * If already active, don't create
+     * another active subscription.
      */
     if (existingSubscription) {
       return new Response(
@@ -448,16 +625,19 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 10
+     * STEP 17
      * Calculate subscription dates.
      * ---------------------------------------------------
      */
-    const now = new Date();
+    const now =
+      new Date();
 
     const endDate =
       new Date(now);
 
-    if (plan === "monthly") {
+    if (
+      plan === "monthly"
+    ) {
       endDate.setMonth(
         endDate.getMonth() + 1
       );
@@ -469,16 +649,14 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * STEP 11
-     * Create the ACTIVE subscription.
-     *
-     * THIS is the part that actually changes the
-     * subscription status to "active".
+     * STEP 18
+     * Create ACTIVE subscription.
      * ---------------------------------------------------
      */
     const {
       data: subscription,
-      error: subscriptionError,
+      error:
+        subscriptionError,
     } = await supabaseAdmin
       .from("subscriptions")
       .insert({
@@ -513,7 +691,9 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (subscriptionError) {
+    if (
+      subscriptionError
+    ) {
       console.error(
         "Subscription creation error:",
         subscriptionError
@@ -524,12 +704,14 @@ serve(async (req) => {
 
     /*
      * ---------------------------------------------------
-     * SUCCESS
+     * STEP 19
+     * Success response.
      * ---------------------------------------------------
      */
     return new Response(
       JSON.stringify({
         success: true,
+
         message:
           "Payment verified and subscription activated successfully.",
 
@@ -574,6 +756,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
+
         error:
           error instanceof Error
             ? error.message

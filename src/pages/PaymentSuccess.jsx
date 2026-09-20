@@ -22,14 +22,10 @@ function PaymentSuccess() {
              * from the URL.
              */
             const razorpay_payment_id =
-                searchParams.get(
-                    "razorpay_payment_id"
-                );
+                searchParams.get("razorpay_payment_id");
 
             const razorpay_payment_link_id =
-                searchParams.get(
-                    "razorpay_payment_link_id"
-                );
+                searchParams.get("razorpay_payment_link_id");
 
             const razorpay_payment_link_reference_id =
                 searchParams.get(
@@ -41,14 +37,23 @@ function PaymentSuccess() {
                     "razorpay_payment_link_status"
                 );
 
+            const razorpay_signature =
+                searchParams.get(
+                    "razorpay_signature"
+                );
+
+            /*
+             * Check required Razorpay parameters.
+             */
             if (
                 !razorpay_payment_id ||
-                !razorpay_payment_link_id
+                !razorpay_payment_link_id ||
+                !razorpay_signature
             ) {
                 setStatus("error");
 
                 setMessage(
-                    "Payment information is missing. We could not verify your payment."
+                    "Payment verification information is missing. We could not verify your payment."
                 );
 
                 return;
@@ -56,6 +61,13 @@ function PaymentSuccess() {
 
             /*
              * Call Supabase Edge Function.
+             *
+             * The Edge Function will:
+             * 1. Verify Razorpay signature
+             * 2. Verify Payment Link
+             * 3. Verify actual payment
+             * 4. Verify amount
+             * 5. Activate subscription
              */
             const {
                 data,
@@ -68,10 +80,14 @@ function PaymentSuccess() {
                         razorpay_payment_link_id,
                         razorpay_payment_link_reference_id,
                         razorpay_payment_link_status,
+                        razorpay_signature,
                     },
                 }
             );
 
+            /*
+             * Supabase function error.
+             */
             if (error) {
                 console.error(
                     "Verification function error:",
@@ -84,6 +100,9 @@ function PaymentSuccess() {
                 );
             }
 
+            /*
+             * Edge Function returned an error.
+             */
             if (!data?.success) {
                 throw new Error(
                     data?.error ||
@@ -96,7 +115,7 @@ function PaymentSuccess() {
              * and subscription activated.
              */
             console.log(
-                "Payment verified:",
+                "Payment verified successfully:",
                 data
             );
 
@@ -127,6 +146,9 @@ function PaymentSuccess() {
             <div className="w-full max-w-xl">
                 <div className="border border-[#cfd4c8] bg-[#f8f7f1] p-8 md:p-12 text-center">
 
+                    {/* =========================
+                        VERIFYING
+                    ========================== */}
                     {status === "verifying" && (
                         <>
                             <div className="mx-auto w-16 h-16 border border-[#47775f] bg-[#dfe5da] flex items-center justify-center">
@@ -149,6 +171,9 @@ function PaymentSuccess() {
                         </>
                     )}
 
+                    {/* =========================
+                        SUCCESS
+                    ========================== */}
                     {status === "success" && (
                         <>
                             <div className="mx-auto w-16 h-16 border border-[#47775f] bg-[#dfe5da] flex items-center justify-center">
@@ -170,8 +195,9 @@ function PaymentSuccess() {
                             </p>
 
                             <div className="mt-8 border-t border-[#cfd4c8] pt-6 text-sm text-[#687169]">
-                                Razorpay payment verified successfully.
-                                Your Digital Heroes subscription is active.
+                                Razorpay payment verified
+                                successfully. Your Digital
+                                Heroes subscription is active.
                             </div>
 
                             <button
@@ -185,6 +211,9 @@ function PaymentSuccess() {
                         </>
                     )}
 
+                    {/* =========================
+                        ERROR
+                    ========================== */}
                     {status === "error" && (
                         <>
                             <div className="mx-auto w-16 h-16 border border-red-300 bg-red-50 flex items-center justify-center">
