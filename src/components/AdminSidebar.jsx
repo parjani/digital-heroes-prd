@@ -378,7 +378,7 @@ export default function AdminSidebar() {
                     {item.icon}
                   </span>
 
-                  <span className="text-[13px] font-semibold tracking-[0.01em]">
+                  <span className="text-[14px] font-semibold tracking-[0.01em]">
                     {item.label}
                   </span>
 
