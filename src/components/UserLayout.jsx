@@ -9,7 +9,7 @@ export default function UserLayout({ children }) {
       <Sidebar />
 
       {/* Main application area */}
-      <div className="lg:ml-[270px] min-h-screen">
+      <div className="lg:ml-67.5 min-h-screen">
 
         {/* Header */}
         <UserHeader />

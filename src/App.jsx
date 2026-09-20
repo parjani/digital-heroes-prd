@@ -35,7 +35,7 @@ import AdminHeader from "./components/AdminHeader";
 import DemoPayment from "./pages/DemoPayment";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
-import UserLayout from "./components/userLayout";
+import UserLayout from "./components/UserLayout";
 import AdminLayout from "./components/AdminLayout";
 
 
