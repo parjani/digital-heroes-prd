@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function AdminWinners() {
@@ -88,17 +88,167 @@ export default function AdminWinners() {
         });
     }
 
-    async function viewProof(filePath) {
-        if (!filePath) {
+    /* =============================================================
+       UPLOAD PROOF
+    ============================================================= */
+
+    async function uploadProof(winnerId, file) {
+        if (!file) {
             return;
         }
 
-        const { data, error } = await supabase.storage
-            .from("winner-proofs")
-            .createSignedUrl(filePath, 60 * 5);
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "application/pdf",
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert(
+                "Please upload a JPG, PNG, WEBP or PDF file."
+            );
+            return;
+        }
+
+        const maxSize = 10 * 1024 * 1024;
+
+        if (file.size > maxSize) {
+            alert("File size must be less than 10 MB.");
+            return;
+        }
+
+        setProcessing(winnerId);
+
+        try {
+            const winner = winners.find(
+                (item) => item.id === winnerId
+            );
+
+            if (!winner) {
+                throw new Error("Winner record not found.");
+            }
+
+            /*
+             * Create a unique storage path.
+             *
+             * Example:
+             * winner-proofs/
+             *   winner-id/
+             *     1727000000000-proof.pdf
+             */
+
+            const fileExtension =
+                file.name.split(".").pop()?.toLowerCase() ||
+                "file";
+
+            const filePath =
+                `${winnerId}/${Date.now()}-proof.${fileExtension}`;
+
+            /*
+             * Upload file to Supabase Storage
+             */
+
+            const { error: uploadError } =
+                await supabase.storage
+                    .from("winner-proofs")
+                    .upload(filePath, file, {
+                        cacheControl: "3600",
+                        upsert: false,
+                    });
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            /*
+             * Save the Storage path in winners.proof_url
+             */
+
+            const { error: updateError } =
+                await supabase
+                    .from("winners")
+                    .update({
+                        proof_url: filePath,
+                    })
+                    .eq("id", winnerId);
+
+            if (updateError) {
+                /*
+                 * If database update fails, remove the uploaded file
+                 * so we don't leave an unused file in Storage.
+                 */
+
+                await supabase.storage
+                    .from("winner-proofs")
+                    .remove([filePath]);
+
+                throw updateError;
+            }
+
+            /*
+             * Remove previous proof if one existed
+             */
+
+            if (
+                winner.proof_url &&
+                winner.proof_url !== filePath
+            ) {
+                const { error: removeError } =
+                    await supabase.storage
+                        .from("winner-proofs")
+                        .remove([winner.proof_url]);
+
+                if (removeError) {
+                    console.warn(
+                        "Old proof could not be removed:",
+                        removeError
+                    );
+                }
+            }
+
+            alert("Proof uploaded successfully.");
+
+            await fetchWinners();
+        } catch (error) {
+            console.error(
+                "Proof upload error:",
+                error
+            );
+
+            alert(
+                error?.message ||
+                "Unable to upload proof."
+            );
+        } finally {
+            setProcessing(null);
+        }
+    }
+
+    /* =============================================================
+       VIEW PROOF
+    ============================================================= */
+
+    async function viewProof(filePath) {
+        if (!filePath) {
+            alert("No proof has been uploaded.");
+            return;
+        }
+
+        const { data, error } =
+            await supabase.storage
+                .from("winner-proofs")
+                .createSignedUrl(
+                    filePath,
+                    60 * 5
+                );
 
         if (error) {
-            console.error(error);
+            console.error(
+                "View proof error:",
+                error
+            );
+
             alert(error.message);
             return;
         }
@@ -110,7 +260,14 @@ export default function AdminWinners() {
         );
     }
 
-    async function updateVerification(winnerId, status) {
+    /* =============================================================
+       VERIFICATION
+    ============================================================= */
+
+    async function updateVerification(
+        winnerId,
+        status
+    ) {
         setProcessing(winnerId);
 
         try {
@@ -131,13 +288,10 @@ export default function AdminWinners() {
             if (status === "approved") {
                 updateData.verified_at =
                     new Date().toISOString();
-
-                updateData.verified_by = user.id;
             }
 
             if (status === "rejected") {
                 updateData.verified_at = null;
-                updateData.verified_by = null;
             }
 
             const { error } = await supabase
@@ -156,14 +310,24 @@ export default function AdminWinners() {
                 error
             );
 
-            alert(error.message);
+            alert(
+                error?.message ||
+                "Unable to update winner verification."
+            );
         } finally {
             setProcessing(null);
         }
     }
 
+    /* =============================================================
+       MARK AS PAID
+    ============================================================= */
+
     async function markAsPaid(winner) {
-        if (winner.verification_status !== "approved") {
+        if (
+            winner.verification_status !==
+            "approved"
+        ) {
             alert(
                 "Winner must be approved before payment."
             );
@@ -212,13 +376,16 @@ export default function AdminWinners() {
     const stats = useMemo(() => {
         const pending = winners.filter(
             (winner) =>
-                winner.verification_status !== "approved" &&
-                winner.verification_status !== "rejected"
+                winner.verification_status !==
+                    "approved" &&
+                winner.verification_status !==
+                    "rejected"
         ).length;
 
         const approved = winners.filter(
             (winner) =>
-                winner.verification_status === "approved"
+                winner.verification_status ===
+                "approved"
         ).length;
 
         const paid = winners.filter(
@@ -228,7 +395,8 @@ export default function AdminWinners() {
 
         const pendingPayment = winners.filter(
             (winner) =>
-                winner.verification_status === "approved" &&
+                winner.verification_status ===
+                    "approved" &&
                 winner.payment_status !== "paid"
         ).length;
 
@@ -276,15 +444,13 @@ export default function AdminWinners() {
                                 </h1>
 
                                 <p className="mt-6 text-sm sm:text-base text-white/60 leading-7 max-w-2xl">
-                                    Review qualifying winners, inspect
-                                    submitted proof and move approved
-                                    rewards through the payout workflow.
+                                    Review qualifying winners, upload
+                                    proof, verify submissions and move
+                                    approved rewards through the payout
+                                    workflow.
                                 </p>
 
                             </div>
-
-
-                            {/* KPI STRIP */}
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 xl:w-[570px]">
 
@@ -335,17 +501,13 @@ export default function AdminWinners() {
 
             </section>
 
-
             {/* =========================================================
                 MAIN
             ========================================================= */}
 
             <main className="max-w-[1500px] mx-auto px-5 sm:px-7 lg:px-10 py-8 lg:py-10">
 
-
-                {/* =====================================================
-                    WORKFLOW STRIP
-                ===================================================== */}
+                {/* WORKFLOW */}
 
                 <section className="rounded-2xl border border-[#cfd4c8] bg-[#f8f7f1] overflow-hidden shadow-[0_12px_40px_rgba(16,24,19,0.05)] mb-6">
 
@@ -360,17 +522,16 @@ export default function AdminWinners() {
                                 </p>
 
                                 <h2 className="mt-1 text-xl font-bold tracking-[-0.035em]">
-                                    Verification and payout queue
+                                    Proof, verification and payout queue
                                 </h2>
 
                             </div>
-
 
                             <div className="flex flex-wrap items-center gap-2">
 
                                 <WorkflowStep
                                     number="01"
-                                    label="Review"
+                                    label="Upload proof"
                                     active
                                 />
 
@@ -440,10 +601,7 @@ export default function AdminWinners() {
 
                 </section>
 
-
-                {/* =====================================================
-                    RECORDS HEADER
-                ===================================================== */}
+                {/* RECORDS HEADER */}
 
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
 
@@ -474,56 +632,60 @@ export default function AdminWinners() {
 
                 </div>
 
-
-                {/* =====================================================
-                    LOADING
-                ===================================================== */}
+                {/* CONTENT */}
 
                 {loading ? (
-
                     <LoadingState />
-
                 ) : winners.length === 0 ? (
-
                     <EmptyState />
-
                 ) : (
-
                     <div className="space-y-4">
 
-                        {winners.map((winner, index) => {
+                        {winners.map(
+                            (winner, index) => {
 
-                            const profile =
-                                profiles[winner.user_id];
+                                const profile =
+                                    profiles[
+                                        winner.user_id
+                                    ];
 
-                            const draw = winner.draws;
+                                const draw =
+                                    winner.draws;
 
-                            return (
-                                <WinnerCard
-                                    key={winner.id}
-                                    winner={winner}
-                                    profile={profile}
-                                    draw={draw}
-                                    index={index}
-                                    processing={processing}
-                                    formatDrawMonth={formatDrawMonth}
-                                    viewProof={viewProof}
-                                    updateVerification={
-                                        updateVerification
-                                    }
-                                    markAsPaid={markAsPaid}
-                                />
-                            );
-                        })}
+                                return (
+                                    <WinnerCard
+                                        key={winner.id}
+                                        winner={winner}
+                                        profile={profile}
+                                        draw={draw}
+                                        index={index}
+                                        processing={
+                                            processing
+                                        }
+                                        formatDrawMonth={
+                                            formatDrawMonth
+                                        }
+                                        viewProof={
+                                            viewProof
+                                        }
+                                        uploadProof={
+                                            uploadProof
+                                        }
+                                        updateVerification={
+                                            updateVerification
+                                        }
+                                        markAsPaid={
+                                            markAsPaid
+                                        }
+                                    />
+                                );
+                            }
+                        )}
 
                     </div>
-
                 )}
 
-
-                {/* =====================================================
-                    FOOTER INFO
-                ===================================================== */}
+                {/* FOOTER */}
 
                 <section className="mt-6 rounded-2xl bg-[#103523] text-white overflow-hidden">
 
@@ -544,21 +706,19 @@ export default function AdminWinners() {
                                 </div>
 
                                 <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
-                                    Review proof first.
+                                    Upload proof first.
                                     <span className="text-[#8ee276]">
                                         {" "}Pay after approval.
                                     </span>
                                 </h2>
 
                                 <p className="mt-4 text-sm text-white/55 leading-6 max-w-xl">
-                                    A winner must be approved before the
-                                    payout can be marked as paid. Every
-                                    verification action remains attached
-                                    to the winner record.
+                                    Upload the winner proof before
+                                    approving the winner. Once approved,
+                                    the reward can be marked as paid.
                                 </p>
 
                             </div>
-
 
                             <div className="grid grid-cols-2 gap-3 lg:w-[280px]">
 
@@ -607,38 +767,61 @@ function WinnerCard({
     processing,
     formatDrawMonth,
     viewProof,
+    uploadProof,
     updateVerification,
     markAsPaid,
 }) {
-    const isProcessing = processing === winner.id;
+    const isProcessing =
+        processing === winner.id;
 
     const isApproved =
-        winner.verification_status === "approved";
+        winner.verification_status ===
+        "approved";
 
     const isRejected =
-        winner.verification_status === "rejected";
+        winner.verification_status ===
+        "rejected";
 
     const isPaid =
         winner.payment_status === "paid";
 
+    const hasProof =
+        Boolean(winner.proof_url);
+
+    const fileInputRef = useRef(null);
+
+    function handleFileChange(event) {
+        const file =
+            event.target.files?.[0];
+
+        if (file) {
+            uploadProof(
+                winner.id,
+                file
+            );
+        }
+
+        event.target.value = "";
+    }
+
     return (
         <article className="rounded-2xl border border-[#cfd4c8] bg-[#f8f7f1] overflow-hidden shadow-[0_8px_30px_rgba(16,24,19,0.04)]">
 
-            {/* =====================================================
-                TOP
-            ===================================================== */}
+            {/* TOP */}
 
             <div className="p-5 sm:p-6 lg:p-7">
 
                 <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
 
-
-                    {/* Winner identity */}
+                    {/* WINNER */}
 
                     <div className="flex gap-4 min-w-0">
 
                         <div className="hidden sm:flex w-11 h-11 shrink-0 rounded-xl bg-[#dfe7dc] text-[#47775f] items-center justify-center text-[10px] font-bold">
-                            {String(index + 1).padStart(2, "0")}
+                            {String(index + 1).padStart(
+                                2,
+                                "0"
+                            )}
                         </div>
 
                         <div className="min-w-0">
@@ -679,8 +862,7 @@ function WinnerCard({
 
                     </div>
 
-
-                    {/* Prize */}
+                    {/* PRIZE */}
 
                     <div className="flex items-center gap-2">
 
@@ -693,8 +875,11 @@ function WinnerCard({
                             <p className="mt-1 text-xl font-bold tracking-[-0.03em] text-[#47775f]">
                                 ₹
                                 {Number(
-                                    winner.prize_amount || 0
-                                ).toLocaleString("en-IN")}
+                                    winner.prize_amount ||
+                                        0
+                                ).toLocaleString(
+                                    "en-IN"
+                                )}
                             </p>
 
                         </div>
@@ -703,10 +888,7 @@ function WinnerCard({
 
                 </div>
 
-
-                {/* =================================================
-                    DETAILS
-                ================================================= */}
+                {/* DETAILS */}
 
                 <div className="grid md:grid-cols-3 gap-3 mt-6">
 
@@ -719,7 +901,9 @@ function WinnerCard({
                         label="Matches"
                         value={
                             <>
-                                {winner.match_count}
+                                {
+                                    winner.match_count
+                                }
                                 <span className="text-[#8a918b] text-xs font-normal">
                                     /5
                                 </span>
@@ -730,21 +914,17 @@ function WinnerCard({
                     <DetailCard
                         label="Draw type"
                         value={
-                            draw?.draw_type
-                                ? draw.draw_type
-                                : "Unknown"
+                            draw?.draw_type ||
+                            "Unknown"
                         }
                     />
 
                 </div>
 
+                {/* WINNING NUMBERS */}
 
-                {/* =================================================
-                    WINNING NUMBERS
-                ================================================= */}
-
-                {draw?.winning_numbers?.length > 0 && (
-
+                {draw?.winning_numbers
+                    ?.length > 0 && (
                     <div className="mt-5 rounded-xl border border-[#cfd4c8] bg-[#f3f1e8] p-5">
 
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -764,15 +944,16 @@ function WinnerCard({
                             <div className="flex flex-wrap gap-2">
 
                                 {draw.winning_numbers.map(
-                                    (number, numberIndex) => (
-
+                                    (
+                                        number,
+                                        numberIndex
+                                    ) => (
                                         <span
                                             key={`${number}-${numberIndex}`}
                                             className="w-9 h-9 rounded-lg bg-[#103523] text-[#8ee276] flex items-center justify-center text-xs font-bold"
                                         >
                                             {number}
                                         </span>
-
                                     )
                                 )}
 
@@ -781,13 +962,9 @@ function WinnerCard({
                         </div>
 
                     </div>
-
                 )}
 
-
-                {/* =================================================
-                    STATUS GRID
-                ================================================= */}
+                {/* STATUS */}
 
                 <div className="grid md:grid-cols-3 gap-3 mt-5">
 
@@ -810,7 +987,7 @@ function WinnerCard({
                     <StatusPanel
                         label="Proof"
                         status={
-                            winner.proof_file_path
+                            hasProof
                                 ? "Uploaded"
                                 : "Not uploaded"
                         }
@@ -821,7 +998,6 @@ function WinnerCard({
 
             </div>
 
-
             {/* =====================================================
                 ACTION BAR
             ===================================================== */}
@@ -830,35 +1006,72 @@ function WinnerCard({
 
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
+                    {/* PROOF ACTIONS */}
+
                     <div className="flex flex-wrap items-center gap-2">
 
-                        {winner.proof_file_path && (
+                        {/* Hidden file input */}
 
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.pdf"
+                            className="hidden"
+                            onChange={
+                                handleFileChange
+                            }
+                        />
+
+                        {/* UPLOAD / REPLACE */}
+
+                        <button
+                            disabled={
+                                isProcessing
+                            }
+                            onClick={() =>
+                                fileInputRef.current?.click()
+                            }
+                            className="h-10 px-4 rounded-lg bg-[#47775f] hover:bg-[#38644f] text-white text-xs font-bold transition disabled:opacity-50"
+                        >
+                            {isProcessing
+                                ? "Uploading..."
+                                : hasProof
+                                ? "Replace proof"
+                                : "Upload proof"}
+                        </button>
+
+                        {/* VIEW */}
+
+                        {hasProof && (
                             <button
+                                disabled={
+                                    isProcessing
+                                }
                                 onClick={() =>
                                     viewProof(
-                                        winner.proof_file_path
+                                        winner.proof_url
                                     )
                                 }
-                                className="h-10 px-4 rounded-lg border border-[#cfd4c8] bg-[#f8f7f1] hover:bg-[#dfe7dc] text-xs font-bold transition"
+                                className="h-10 px-4 rounded-lg border border-[#cfd4c8] bg-[#f8f7f1] hover:bg-[#dfe7dc] text-xs font-bold transition disabled:opacity-50"
                             >
                                 View proof
                                 <span className="ml-1">
                                     ↗
                                 </span>
                             </button>
-
                         )}
 
                     </div>
 
+                    {/* VERIFICATION / PAYMENT */}
 
                     <div className="flex flex-wrap items-center gap-2">
 
                         {!isApproved && (
-
                             <button
-                                disabled={isProcessing}
+                                disabled={
+                                    isProcessing
+                                }
                                 onClick={() =>
                                     updateVerification(
                                         winner.id,
@@ -871,14 +1084,13 @@ function WinnerCard({
                                     ? "Processing..."
                                     : "Approve winner"}
                             </button>
-
                         )}
 
-
                         {!isRejected && (
-
                             <button
-                                disabled={isProcessing}
+                                disabled={
+                                    isProcessing
+                                }
                                 onClick={() =>
                                     updateVerification(
                                         winner.id,
@@ -891,15 +1103,14 @@ function WinnerCard({
                                     ? "Processing..."
                                     : "Reject"}
                             </button>
-
                         )}
-
 
                         {isApproved &&
                             !isPaid && (
-
                                 <button
-                                    disabled={isProcessing}
+                                    disabled={
+                                        isProcessing
+                                    }
                                     onClick={() =>
                                         markAsPaid(
                                             winner
@@ -911,11 +1122,9 @@ function WinnerCard({
                                         ? "Processing..."
                                         : "Mark as paid →"}
                                 </button>
-
                             )}
 
                         {isPaid && (
-
                             <div className="h-10 px-4 rounded-lg bg-[#dfe7dc] text-[#47775f] flex items-center gap-2 text-xs font-bold">
 
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#47775f]" />
@@ -923,7 +1132,6 @@ function WinnerCard({
                                 Payment completed
 
                             </div>
-
                         )}
 
                     </div>
@@ -1050,11 +1258,15 @@ function DetailCard({
 function StatusPanel({
     label,
     status,
-    type,
 }) {
-    let textColor = "text-[#856f36]";
-    let dotColor = "bg-[#856f36]";
-    let bgColor = "bg-[#f3f1e8]";
+    let textColor =
+        "text-[#856f36]";
+
+    let dotColor =
+        "bg-[#856f36]";
+
+    let bgColor =
+        "bg-[#f3f1e8]";
 
     const normalized =
         String(status || "").toLowerCase();
@@ -1064,18 +1276,28 @@ function StatusPanel({
         normalized === "paid" ||
         normalized === "uploaded"
     ) {
-        textColor = "text-[#47775f]";
-        dotColor = "bg-[#47775f]";
-        bgColor = "bg-[#dfe7dc]";
+        textColor =
+            "text-[#47775f]";
+
+        dotColor =
+            "bg-[#47775f]";
+
+        bgColor =
+            "bg-[#dfe7dc]";
     }
 
     if (
         normalized === "rejected" ||
         normalized === "not uploaded"
     ) {
-        textColor = "text-[#8a625d]";
-        dotColor = "bg-[#8a625d]";
-        bgColor = "bg-[#ebe6e2]";
+        textColor =
+            "text-[#8a625d]";
+
+        dotColor =
+            "bg-[#8a625d]";
+
+        bgColor =
+            "bg-[#ebe6e2]";
     }
 
     return (
@@ -1111,7 +1333,6 @@ function StatusPanel({
 ============================================================= */
 
 function StatusBadge({
-    type,
     status,
 }) {
     const normalized =

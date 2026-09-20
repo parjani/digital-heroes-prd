@@ -87,7 +87,7 @@ export default function Winnings() {
             const extension = file.name.split(".").pop();
 
             const filePath =
-                `${user.id}/${winnerId}-${Date.now()}.${extension}`;
+                `${winnerId}/${Date.now()}-proof.${extension}`;
 
             const { error: uploadError } =
                 await supabase.storage
@@ -124,6 +124,7 @@ export default function Winnings() {
 
     async function viewProof(filePath) {
         if (!filePath) {
+            alert("No proof has been uploaded.");
             return;
         }
 
@@ -136,7 +137,11 @@ export default function Winnings() {
                 );
 
         if (error) {
-            console.error(error);
+            console.error(
+                "View proof error:",
+                error
+            );
+
             alert(error.message);
             return;
         }
@@ -412,9 +417,9 @@ export default function Winnings() {
                                 "pending";
 
                             const isVerified =
-                                String(
-                                    verificationStatus
-                                ).toLowerCase() === "verified";
+                                ["approved", "verified"].includes(
+                                    String(verificationStatus).toLowerCase()
+                                );
 
                             const isPaid =
                                 String(
@@ -597,7 +602,7 @@ export default function Winnings() {
                                                 <div className="flex items-center gap-2">
 
                                                     <div className="w-8 h-8 rounded-xl bg-[#dfe7dc] text-[#47775f] flex items-center justify-center">
-                                                        {winner.proof_file_path
+                                                        {winner.proof_url
                                                             ? "✓"
                                                             : "↑"}
                                                     </div>
@@ -609,13 +614,13 @@ export default function Winnings() {
                                                 </div>
 
                                                 <h3 className="mt-4 text-xl font-bold tracking-[-0.025em]">
-                                                    {winner.proof_file_path
+                                                    {winner.proof_url
                                                         ? "Your proof has been submitted."
                                                         : "Submit your winning score proof."}
                                                 </h3>
 
                                                 <p className="mt-2 text-sm leading-6 text-[#687169]">
-                                                    {winner.proof_file_path
+                                                    {winner.proof_url
                                                         ? "Your uploaded proof is available to view. The admin team can use it for verification."
                                                         : "Upload an image showing your winning score so the admin team can verify your entry."}
                                                 </p>
@@ -627,14 +632,13 @@ export default function Winnings() {
                                             </div>
 
                                             {/* Actions */}
-                                            {!winner.proof_file_path ? (
+                                            {!winner.proof_url ? (
 
                                                 <label
-                                                    className={`shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-bold transition-all ${
-                                                        uploading === winner.id
+                                                    className={`shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-bold transition-all ${uploading === winner.id
                                                             ? "bg-[#cfd4c8] text-[#8a918b] cursor-not-allowed"
                                                             : "bg-[#8ee276] text-[#103523] hover:bg-[#a0ed89] hover:-translate-y-0.5 cursor-pointer shadow-[0_8px_25px_rgba(142,226,118,0.18)]"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {uploading === winner.id
                                                         ? (
@@ -680,7 +684,7 @@ export default function Winnings() {
                                                         type="button"
                                                         onClick={() =>
                                                             viewProof(
-                                                                winner.proof_file_path
+                                                                winner.proof_url
                                                             )
                                                         }
                                                         className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#103523] text-white text-sm font-semibold hover:bg-[#0d2117] transition-all"
@@ -832,18 +836,16 @@ function StatusBadge({ value, success }) {
 
     return (
         <div
-            className={`inline-flex items-center gap-2 mt-3 px-3.5 py-2 rounded-full text-xs font-bold ${
-                success
+            className={`inline-flex items-center gap-2 mt-3 px-3.5 py-2 rounded-full text-xs font-bold ${success
                     ? "bg-[#dfe7dc] text-[#47775f]"
                     : "bg-[#ece9dc] text-[#746f5f]"
-            }`}
+                }`}
         >
             <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                    success
+                className={`w-1.5 h-1.5 rounded-full ${success
                         ? "bg-[#47775f]"
                         : "bg-[#a69f83]"
-                }`}
+                    }`}
             />
 
             {formatted}

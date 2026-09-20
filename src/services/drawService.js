@@ -550,17 +550,11 @@ export async function saveDrawResults(
     prizePool
 ) {
     if (!draw?.id) {
-        throw new Error(
-            "Invalid draw."
-        );
+        throw new Error("Invalid draw.");
     }
 
-    if (
-        !draw?.winning_numbers?.length
-    ) {
-        throw new Error(
-            "Draw has no winning numbers."
-        );
+    if (!draw?.winning_numbers?.length) {
+        throw new Error("Draw has no winning numbers.");
     }
 
     const distribution =
@@ -571,66 +565,73 @@ export async function saveDrawResults(
         );
 
     // ----------------------------------------------
+    // CHECK IF RESULTS WERE ALREADY SAVED
+    // ----------------------------------------------
+
+    const {
+        data: existingWinners,
+        error: existingWinnerError,
+    } = await supabase
+        .from("winners")
+        .select("id")
+        .eq("draw_id", draw.id)
+        .limit(1);
+
+    if (existingWinnerError) {
+        throw existingWinnerError;
+    }
+
+    const alreadySaved =
+        existingWinners &&
+        existingWinners.length > 0;
+
+    // ----------------------------------------------
     // SAVE DRAW ENTRIES
     // ----------------------------------------------
 
     if (calculatedResults.length > 0) {
-
         const entries =
-            calculatedResults.map(
-                (result) => ({
-                    draw_id: draw.id,
-                    user_id: result.user_id,
-                    numbers: result.numbers,
-                    match_count:
-                        result.match_count,
-                })
-            );
+            calculatedResults.map((result) => ({
+                draw_id: draw.id,
+                user_id: result.user_id,
+                numbers: result.numbers,
+                match_count: result.match_count,
+            }));
 
         const {
             error: entryError,
         } = await supabase
             .from("draw_entries")
             .upsert(entries, {
-                onConflict:
-                    "draw_id,user_id",
+                onConflict: "draw_id,user_id",
             });
 
         if (entryError) {
             throw entryError;
         }
+    }
 
-        // ------------------------------------------
-        // SAVE WINNERS
-        // ------------------------------------------
+    // ----------------------------------------------
+    // SAVE WINNERS ONLY IF NOT ALREADY SAVED
+    // ----------------------------------------------
 
+    if (!alreadySaved) {
         const winners =
-            distribution.winners.map(
-                (winner) => ({
-                    draw_id: draw.id,
-                    user_id:
-                        winner.user_id,
-                    match_count:
-                        winner.match_count,
-                    prize_amount:
-                        winner.prize_amount,
-                    verification_status:
-                        "pending",
-                    payment_status:
-                        "pending",
-                })
-            );
+            distribution.winners.map((winner) => ({
+                draw_id: draw.id,
+                user_id: winner.user_id,
+                match_count: winner.match_count,
+                prize_amount: winner.prize_amount,
+                verification_status: "pending",
+                payment_status: "pending",
+            }));
 
         if (winners.length > 0) {
-
             const {
                 error: winnerError,
             } = await supabase
                 .from("winners")
-                .upsert(winners, {
-                    onConflict:
-                        "draw_id,user_id",
-                });
+                .insert(winners);
 
             if (winnerError) {
                 throw winnerError;
@@ -659,7 +660,14 @@ export async function saveDrawResults(
         throw drawError;
     }
 
-    return distribution;
+    // ----------------------------------------------
+    // RETURN RESULT
+    // ----------------------------------------------
+
+    return {
+        ...distribution,
+        alreadySaved,
+    };
 }
 
 // --------------------------------------------------

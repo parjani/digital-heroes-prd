@@ -232,44 +232,74 @@ export default function AdminDraws() {
     // --------------------------------------------------
     // SAVE RESULTS
     // --------------------------------------------------
+ async function saveResults(draw) {
+    const drawResults = results[draw.id];
 
-    async function saveResults(draw) {
-        const drawResults = results[draw.id];
+    if (!drawResults) {
+        alert("Calculate the results first.");
+        return;
+    }
 
-        if (!drawResults) {
-            alert("Calculate the results first.");
-            return;
-        }
+    if (draw.status !== "simulated") {
+        alert(
+            "Only simulated draws can have results saved."
+        );
+        return;
+    }
 
-        if (draw.status !== "simulated") {
-            alert("Only simulated draws can have results saved.");
-            return;
-        }
+    setSavingResults(draw.id);
 
-        setSavingResults(draw.id);
-
-        try {
-            const distribution = await saveDrawResults(
+    try {
+        const distribution =
+            await saveDrawResults(
                 draw,
                 drawResults,
                 Number(draw.prize_pool || 0)
             );
 
+        if (distribution.alreadySaved) {
             alert(
-                `Results saved successfully.\n\n` +
-                `Qualifying winners: ${drawResults.length}\n` +
-                `Total prize pool: ₹${distribution.totalPool.toLocaleString()}\n` +
-                `Jackpot rollover: ₹${distribution.jackpotRollover.toLocaleString()}`
+                "Results are already saved.\n\n" +
+                "You can now publish the draw."
             );
 
             await fetchDraws();
-        } catch (error) {
-            console.error("Save results error:", error);
-            alert(error.message);
-        } finally {
-            setSavingResults(null);
+            return;
         }
+
+        alert(
+            "Results saved successfully.\n\n" +
+            `Qualifying winners: ${drawResults.length}\n` +
+            `Total prize pool: ₹${distribution.totalPool.toLocaleString()}\n` +
+            `Jackpot rollover: ₹${distribution.jackpotRollover.toLocaleString()}\n\n` +
+            "You can now publish the draw."
+        );
+
+        await fetchDraws();
+
+    } catch (error) {
+        console.error("Save results error:", error);
+
+        // Duplicate winner → show friendly message
+        if (
+            error?.code === "23505" ||
+            error?.message?.includes("idx_winners_unique_user")
+        ) {
+            alert(
+                "Results are already saved.\n\n" +
+                "You can now publish the draw."
+            );
+        } else {
+            alert(
+                error?.message ||
+                "Unable to save draw results."
+            );
+        }
+
+    } finally {
+        setSavingResults(null);
     }
+}
 
     // --------------------------------------------------
     // PUBLISH
@@ -1233,8 +1263,8 @@ function WorkflowProgress({ status }) {
                     <div
                         key={step.key}
                         className={`flex items-center ${index !== steps.length - 1
-                                ? "flex-1"
-                                : ""
+                            ? "flex-1"
+                            : ""
                             }`}
                     >
 
@@ -1242,8 +1272,8 @@ function WorkflowProgress({ status }) {
 
                             <div
                                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition ${completed
-                                        ? "bg-[#47775f] text-white"
-                                        : "bg-[#e7ebe3] text-[#8a918b]"
+                                    ? "bg-[#47775f] text-white"
+                                    : "bg-[#e7ebe3] text-[#8a918b]"
                                     }`}
                             >
                                 {completed ? "✓" : index + 1}
@@ -1251,8 +1281,8 @@ function WorkflowProgress({ status }) {
 
                             <span
                                 className={`hidden sm:block text-[10px] uppercase tracking-[0.1em] font-semibold ${completed
-                                        ? "text-[#47775f]"
-                                        : "text-[#9a9f98]"
+                                    ? "text-[#47775f]"
+                                    : "text-[#9a9f98]"
                                     }`}
                             >
                                 {step.label}
@@ -1264,8 +1294,8 @@ function WorkflowProgress({ status }) {
                             <div className="flex-1 h-px mx-3 sm:mx-5 bg-[#cfd4c8]">
                                 <div
                                     className={`h-full transition-all ${index < activeIndex
-                                            ? "bg-[#47775f]"
-                                            : "bg-transparent"
+                                        ? "bg-[#47775f]"
+                                        : "bg-transparent"
                                         }`}
                                 />
                             </div>
@@ -1479,15 +1509,15 @@ function WorkflowStep({
     return (
         <div
             className={`rounded-xl border p-5 ${active
-                    ? "border-[#8ee276]/30 bg-[#8ee276]/10"
-                    : "border-white/10 bg-white/[0.035]"
+                ? "border-[#8ee276]/30 bg-[#8ee276]/10"
+                : "border-white/10 bg-white/[0.035]"
                 }`}
         >
 
             <div
                 className={`text-[10px] uppercase tracking-[0.15em] font-bold ${active
-                        ? "text-[#8ee276]"
-                        : "text-white/30"
+                    ? "text-[#8ee276]"
+                    : "text-white/30"
                     }`}
             >
                 {number}
