@@ -4,396 +4,153 @@ function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#f1f0e8] text-[#101813]">
+    <div className="min-h-screen bg-[#f4f7ed] text-[#10291f] overflow-hidden">
 
-      {/* ================= NAVBAR ================= */}
-     
+      {/* =====================================================
+          NAVBAR + HERO
+      ===================================================== */}
+      <section className="relative bg-[#063d2b] text-white overflow-hidden">
 
+        {/* Background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 left-[35%] w-[600px] h-[600px] rounded-full bg-[#62b86d]/20 blur-[120px]" />
+          <div className="absolute top-[30%] right-[25%] w-[400px] h-[400px] rounded-full bg-[#9ae66f]/10 blur-[100px]" />
+        </div>
 
-      {/* ================= HERO ================= */}
-      <main>
+      
 
-        <section className="relative overflow-hidden">
 
-          {/* Decorative background */}
-          <div className="absolute -left-20 top-20 text-[220px] md:text-[360px] font-black leading-none text-[#47745f]/10 select-none pointer-events-none">
-            DH
-          </div>
+        {/* ================= HERO ================= */}
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-10 pt-16 md:pt-20 pb-32 mt-20 md:mt-24">
 
-          <div className="absolute right-[-150px] top-40 w-[500px] h-[500px] rounded-full bg-[#5c896f]/15 blur-2xl pointer-events-none" />
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-4 items-center">
 
+            {/* LEFT */}
+            <div className="relative z-10">
 
-          <div className="relative max-w-7xl mx-auto px-6 lg:px-10 pt-24 pb-20 md:pt-32 md:pb-28">
+              <p className="text-[11px] md:text-xs uppercase tracking-[0.28em] text-[#8ee276] font-semibold">
+                Digital Heroes · Play with purpose
+              </p>
 
-            <div className="grid lg:grid-cols-12 gap-12 items-center">
+              <h1 className="mt-7 text-[58px] sm:text-[70px] md:text-[82px] lg:text-[88px] xl:text-[96px] font-semibold tracking-[-0.07em] leading-[0.9]">
 
-              {/* Left */}
-              <div className="lg:col-span-7">
+                Your game.
 
-                <p className="text-xs uppercase tracking-[0.3em] text-[#47745f] font-semibold mb-8">
-                  Digital Heroes · Play with purpose
-                </p>
+                <br />
 
+                Your impact.
 
-                <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[105px] font-semibold tracking-[-0.07em] leading-[0.88]">
-                  Your game.
-                  <br />
+                <br />
 
-                  <span className="text-[#101813]">
-                    Your impact.
-                  </span>
+                <span className="text-[#8ee276]">
+                  Something bigger.
+                </span>
 
-                  <br />
+              </h1>
 
-                  <span className="text-[#6f8d7b]">
-                    Something bigger.
-                  </span>
-                </h1>
+              <p className="mt-8 max-w-xl text-base md:text-lg leading-7 text-white/70">
+                We connect your golf performance with charitable
+                giving and a monthly prize draw. Track your game,
+                support a cause and become part of something bigger.
+              </p>
 
 
-                <p className="mt-10 max-w-2xl text-lg md:text-xl leading-relaxed text-[#4f5953]">
-                  We connect your golf performance with charitable giving
-                  and a monthly prize draw. Track your game, support a cause
-                  and become part of something bigger.
-                </p>
-
-
-                <div className="mt-9 flex flex-col sm:flex-row gap-3">
-
-                  <button
-                    onClick={() => navigate("/signup")}
-                    className="px-7 py-4 rounded-full bg-[#47745f] text-white font-semibold hover:bg-[#3c654f] transition shadow-sm"
-                  >
-                    Become a Digital Hero →
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/how-it-works")}
-                    className="px-7 py-4 rounded-full border border-[#b9c3b9] bg-[#f6f4ed] text-[#25312a] font-semibold hover:bg-white transition"
-                  >
-                    See how it works
-                  </button>
-
-                </div>
-
-
-                <div className="mt-8 flex items-center gap-3 text-sm text-[#69736c]">
-
-                  <div className="w-2 h-2 rounded-full bg-[#47745f]" />
-
-                  Built around golf, giving and community.
-
-                </div>
-
-              </div>
-
-
-              {/* Right visual */}
-              <div className="lg:col-span-5">
-
-                <div className="relative min-h-[480px] flex items-center justify-center">
-
-                  {/* Green circle */}
-                  <div className="absolute w-[360px] h-[360px] md:w-[440px] md:h-[440px] rounded-full bg-[#6d967d]" />
-
-                  {/* Main card */}
-                  <div className="relative w-full max-w-[470px]">
-
-                    <div className="bg-[#e9e7dd] border border-[#c4cbc1] rounded-[28px] p-4 shadow-[0_30px_70px_rgba(30,50,40,0.16)] rotate-[2deg]">
-
-                      <div className="rounded-[20px] bg-[#47745f] p-7 md:p-9 min-h-[330px] flex flex-col justify-between">
-
-                        <div className="flex items-start justify-between">
-
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-white/60">
-                              Digital Heroes
-                            </p>
-
-                            <p className="text-2xl font-semibold text-white mt-2">
-                              Play with purpose.
-                            </p>
-                          </div>
-
-                          <div className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center text-white font-bold">
-                            DH
-                          </div>
-
-                        </div>
-
-
-                        <div>
-
-                          <div className="flex gap-3 mb-7">
-
-                            {[18, 22, 16, 24, 20].map((score, index) => (
-                              <div
-                                key={index}
-                                className="w-12 h-12 rounded-full bg-[#dbe4d7] text-[#203229] flex items-center justify-center font-semibold"
-                              >
-                                {score}
-                              </div>
-                            ))}
-
-                          </div>
-
-                          <p className="text-white/70 text-sm">
-                            Your latest five Stableford scores
-                            become part of your monthly draw entry.
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    {/* Floating badge */}
-                    <div className="absolute -left-5 top-10 px-5 py-3 rounded-full bg-[#f6f4ed] border border-[#c4cbc1] shadow-md text-xs font-semibold tracking-wider">
-                      PLAY
-                    </div>
-
-
-                    <div className="absolute -right-5 bottom-8 px-5 py-3 rounded-full bg-[#f6f4ed] border border-[#c4cbc1] shadow-md text-xs font-semibold tracking-wider">
-                      GIVE BACK
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= NUMBERS ================= */}
-        <section className="border-y border-[#c8cec5] bg-[#e8e7de]">
-
-          <div className="max-w-7xl mx-auto px-6 lg:px-10">
-
-            <div className="grid grid-cols-2 md:grid-cols-4">
-
-              <Stat
-                number="5"
-                text="latest scores tracked"
-              />
-
-              <Stat
-                number="1×"
-                text="monthly draw"
-              />
-
-              <Stat
-                number="10%"
-                text="minimum contribution"
-              />
-
-              <Stat
-                number="100%"
-                text="purpose driven"
-                last
-              />
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= INTRO ================= */}
-        <section>
-
-          <div className="max-w-7xl mx-auto px-6 lg:px-10 py-28 md:py-36">
-
-            <div className="grid lg:grid-cols-12 gap-12">
-
-              <div className="lg:col-span-4">
-
-                <p className="text-xs uppercase tracking-[0.25em] text-[#6c776f]">
-                  01 · The idea
-                </p>
-
-                <div className="mt-8 w-16 h-[2px] bg-[#47745f]" />
-
-              </div>
-
-
-              <div className="lg:col-span-7 lg:col-start-6">
-
-                <h2 className="text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[1.05]">
-                  Golf is more than
-                  <br />
-                  a score.
-                  <br />
-
-                  <span className="text-[#6f8d7b]">
-                    It can give back.
-                  </span>
-                </h2>
-
-                <p className="mt-8 text-lg md:text-xl text-[#56615a] leading-relaxed max-w-2xl">
-                  Digital Heroes turns your golf performance into
-                  participation, charitable contribution and the chance
-                  to win a monthly prize.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= HOW IT WORKS ================= */}
-        <section className="bg-[#e6e5dc] border-y border-[#c8cec5]">
-
-          <div className="max-w-7xl mx-auto px-6 lg:px-10 py-28 md:py-36">
-
-            <div className="grid lg:grid-cols-12 gap-12 mb-16">
-
-              <div className="lg:col-span-7">
-
-                <p className="text-xs uppercase tracking-[0.25em] text-[#6c776f]">
-                  02 · The process
-                </p>
-
-                <h2 className="text-5xl md:text-7xl font-semibold tracking-[-0.06em] leading-[0.95] mt-6">
-                  Three steps.
-                  <br />
-
-                  <span className="text-[#6f8d7b]">
-                    One simple idea.
-                  </span>
-                </h2>
-
-              </div>
-
-
-              <div className="lg:col-span-4 lg:col-start-9 flex items-end">
-
-                <p className="text-[#56615a] leading-relaxed">
-                  Your performance creates your entry.
-                  Your participation supports a cause.
-                  The draw brings everyone together.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            <div className="grid md:grid-cols-3 border-t border-[#c3cac2]">
-
-              <ProcessCard
-                number="01"
-                title="Track your game"
-                description="Add your latest Stableford scores and keep your performance history up to date."
-              />
-
-              <ProcessCard
-                number="02"
-                title="Choose your cause"
-                description="Select a participating charity and decide where your contribution should go."
-              />
-
-              <ProcessCard
-                number="03"
-                title="Enter the draw"
-                description="Your latest scores generate your monthly draw numbers and your chance to win."
-                last
-              />
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= CHARITY ================= */}
-        <section>
-
-          <div className="max-w-7xl mx-auto px-6 lg:px-10 py-28 md:py-36">
-
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-
-              <div>
-
-                <p className="text-xs uppercase tracking-[0.25em] text-[#6c776f]">
-                  03 · Impact
-                </p>
-
-                <h2 className="text-5xl md:text-7xl font-semibold tracking-[-0.06em] leading-[0.95] mt-6">
-                  You choose
-                  <br />
-                  where the
-                  <br />
-
-                  <span className="text-[#6f8d7b]">
-                    impact goes.
-                  </span>
-                </h2>
-
-                <p className="mt-8 text-lg text-[#56615a] leading-relaxed max-w-xl">
-                  Choose a charity you care about and dedicate a
-                  percentage of your winnings to their work.
-                  Your participation becomes a simple way to turn
-                  performance into positive change.
-                </p>
+              {/* Buttons */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
 
                 <button
-                  onClick={() => navigate("/charities")}
-                  className="mt-8 px-7 py-3.5 rounded-full border border-[#aeb9ae] bg-[#f6f4ed] font-semibold hover:bg-white transition"
+                  onClick={() => navigate("/signup")}
+                  className="group px-7 py-4 rounded-full bg-[#8ee276] text-[#103523] font-bold hover:bg-[#a0ed89] hover:-translate-y-0.5 transition-all shadow-[0_12px_35px_rgba(142,226,118,0.18)]"
                 >
-                  Explore charities →
+                  Become a Digital Hero
+
+                  <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                    →
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/how-it-works")}
+                  className="px-7 py-4 rounded-full border border-white/35 text-white font-semibold hover:bg-white/10 transition"
+                >
+                  See how it works
                 </button>
 
               </div>
 
 
-              {/* Stats card */}
-              <div className="relative">
+              <div className="mt-7 flex items-center gap-2 text-xs text-white/55">
 
-                <div className="absolute -inset-5 rounded-full bg-[#6d967d]/15 blur-2xl" />
+                <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
 
-                <div className="relative bg-[#47745f] rounded-[30px] p-7 md:p-10 text-white shadow-[0_30px_60px_rgba(55,85,65,0.2)]">
+                Built around golf, giving and community.
 
-                  <p className="text-xs uppercase tracking-[0.25em] text-white/60">
-                    Your participation
-                  </p>
+              </div>
 
-                  <div className="grid grid-cols-2 mt-10">
+            </div>
 
-                    <ImpactStat
-                      number="10%"
-                      text="minimum contribution"
-                    />
 
-                    <ImpactStat
-                      number="5"
-                      text="scores tracked"
-                    />
+            {/* RIGHT VISUAL */}
+            <div className="relative min-h-[470px] lg:min-h-[560px]">
 
-                    <ImpactStat
-                      number="1×"
-                      text="monthly draw"
-                    />
+              {/* Green shape */}
+              <div className="absolute -right-32 top-[-80px] w-[580px] h-[580px] rounded-[45%] bg-[#194e38] rotate-[-18deg]" />
 
-                    <ImpactStat
-                      number="∞"
-                      text="potential impact"
-                    />
+              {/* Golf image */}
+              <div
+                className="absolute right-[-30px] top-4 w-[520px] h-[500px] md:w-[610px] md:h-[540px] bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    "url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1200&q=85')",
+                  clipPath:
+                    "ellipse(72% 62% at 65% 50%)",
+                }}
+              />
 
+              {/* Dark overlay */}
+              <div
+                className="absolute right-[-30px] top-4 w-[520px] h-[500px] md:w-[610px] md:h-[540px] bg-[#063d2b]/15"
+                style={{
+                  clipPath:
+                    "ellipse(72% 62% at 65% 50%)",
+                }}
+              />
+
+
+              {/* Score floating card */}
+              <div className="absolute right-2 md:right-8 bottom-12 md:bottom-20 z-10 w-[250px] rounded-2xl bg-[#0d563b]/90 backdrop-blur-xl border border-white/15 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.25)]">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-white/50">
+                      Your latest five
+                    </p>
+
+                    <p className="mt-1 text-sm font-semibold">
+                      Stableford scores
+                    </p>
                   </div>
+
+                  <div className="w-9 h-9 rounded-full bg-[#8ee276] text-[#123b2a] flex items-center justify-center text-[10px] font-black italic">
+                    DH
+                  </div>
+
+                </div>
+
+
+                <div className="grid grid-cols-5 gap-2 mt-5">
+
+                  {[18, 22, 16, 24, 20].map(
+                    (score, index) => (
+                      <div
+                        key={index}
+                        className="aspect-square rounded-full bg-[#8ee276] text-[#173c29] flex items-center justify-center text-xs font-bold"
+                      >
+                        {score}
+                      </div>
+                    )
+                  )}
 
                 </div>
 
@@ -403,27 +160,358 @@ function Home() {
 
           </div>
 
-        </section>
+
+          {/* ================= STATS ================= */}
+          <div className="relative z-20 -mb-20 mt-14">
+
+            <div className="rounded-3xl bg-[#124d38]/90 backdrop-blur-xl border border-white/15 shadow-[0_25px_70px_rgba(0,0,0,0.2)]">
+
+              <div className="grid grid-cols-2 md:grid-cols-4">
+
+                <HeroStat
+                  icon="◒"
+                  number="5"
+                  text="latest scores tracked"
+                />
+
+                <HeroStat
+                  icon="♕"
+                  number="1×"
+                  text="monthly draw"
+                />
+
+                <HeroStat
+                  icon="♡"
+                  number="10%"
+                  text="minimum contribution"
+                />
+
+                <HeroStat
+                  icon="⌁"
+                  number="100%"
+                  text="purpose driven"
+                  last
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
 
 
-        {/* ================= CTA ================= */}
-        <section className="bg-[#dce4d8] border-y border-[#c2ccc1]">
+      {/* =====================================================
+          IDEA SECTION
+      ===================================================== */}
+      <section className="bg-[#f4f7ed] pt-40 pb-28 md:pb-32">
 
-          <div className="max-w-7xl mx-auto px-6 lg:px-10 py-28 md:py-36">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
 
-            <div className="max-w-4xl">
+          <div className="grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
 
-              <p className="text-xs uppercase tracking-[0.25em] text-[#47745f] font-semibold">
-                04 · Join Digital Heroes
-              </p>
+            {/* Text */}
+            <div>
 
-              <h2 className="text-5xl md:text-8xl font-semibold tracking-[-0.07em] leading-[0.9] mt-6">
-                Ready to play
+              <SectionLabel number="01" text="THE IDEA" />
+
+              <h2 className="mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-[-0.06em] leading-[0.92]">
+
+                Golf is more than
                 <br />
-                with purpose?
+
+                a score.
+
+                <br />
+
+                <span className="text-[#43a55e]">
+                  It can give back.
+                </span>
+
               </h2>
 
-              <p className="mt-8 text-lg text-[#56615a] max-w-xl">
+              <p className="mt-8 max-w-lg text-base md:text-lg leading-7 text-[#627069]">
+                Digital Heroes turns your golf performance into
+                participation, charitable contribution and the chance
+                to win a monthly prize.
+              </p>
+
+            </div>
+
+
+            {/* Image */}
+            <div className="relative">
+
+              <div className="absolute -left-8 -bottom-8 w-40 h-40 rounded-full bg-[#dcebd2]" />
+
+              <div
+                className="relative h-[350px] md:h-[440px] rounded-[30px] bg-cover bg-center shadow-[0_25px_60px_rgba(30,60,40,0.12)]"
+                style={{
+                  backgroundImage:
+                    "url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=1200&q=85')",
+                }}
+              >
+
+                <div className="absolute inset-0 rounded-[30px] bg-gradient-to-t from-[#063d2b]/45 via-transparent to-transparent" />
+
+                <div className="absolute right-7 bottom-7 max-w-[210px] text-right text-white">
+
+                  <p className="text-2xl font-semibold leading-tight italic">
+                    Better golf.
+                    <br />
+                    Brighter futures.
+                  </p>
+
+                  <div className="mt-3 ml-auto w-14 h-px bg-[#8ee276]" />
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          PROCESS
+      ===================================================== */}
+      <section className="relative bg-[#063d2b] text-white overflow-hidden">
+
+        {/* Background pattern */}
+        <div className="absolute right-[-100px] top-[-100px] w-[500px] h-[500px] rounded-full border border-white/5" />
+
+        <div className="absolute right-[-40px] top-[-40px] w-[380px] h-[380px] rounded-full border border-white/5" />
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-28 md:py-32">
+
+          <div className="grid lg:grid-cols-2 gap-12 mb-14">
+
+            <div>
+
+              <SectionLabel
+                number="02"
+                text="THE PROCESS"
+                light
+              />
+
+              <h2 className="mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-[-0.06em] leading-[0.92]">
+
+                Three steps.
+
+                <br />
+
+                <span className="text-[#8ee276]">
+                  One simple idea.
+                </span>
+
+              </h2>
+
+            </div>
+
+
+            <div className="lg:flex lg:items-end">
+
+              <p className="max-w-md text-white/60 leading-7">
+                Your performance creates your entry.
+                Your participation supports a cause.
+                The draw brings everyone together.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div className="grid md:grid-cols-3 gap-5">
+
+            <ProcessCard
+              number="01"
+              title="Track your game"
+              description="Add your latest Stableford scores and keep your performance history up to date."
+              icon="◒"
+            />
+
+            <ProcessCard
+              number="02"
+              title="Choose your cause"
+              description="Select a participating charity and decide where your contribution should go."
+              icon="♡"
+            />
+
+            <ProcessCard
+              number="03"
+              title="Enter the draw"
+              description="Your latest scores generate your monthly draw numbers and your chance to win."
+              icon="♕"
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          IMPACT
+      ===================================================== */}
+      <section className="bg-[#f4f7ed] py-28 md:py-32">
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+
+          <div className="grid lg:grid-cols-[0.85fr_1fr] gap-16 items-center">
+
+            <div>
+
+              <SectionLabel number="03" text="IMPACT" />
+
+              <h2 className="mt-7 text-5xl md:text-6xl lg:text-7xl font-semibold tracking-[-0.06em] leading-[0.92]">
+
+                You choose
+                <br />
+
+                where the
+                <br />
+
+                <span className="text-[#43a55e]">
+                  impact goes.
+                </span>
+
+              </h2>
+
+              <p className="mt-8 max-w-md text-[#65736b] leading-7">
+                Choose a charity you care about and dedicate a
+                percentage of your winnings to their work.
+                Your participation becomes a simple way to turn
+                performance into positive change.
+              </p>
+
+              <button
+                onClick={() => navigate("/charities")}
+                className="group mt-8 px-6 py-3.5 rounded-full bg-[#43a55e] text-white font-semibold hover:bg-[#348d4d] transition"
+              >
+                Explore charities
+
+                <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
+              </button>
+
+            </div>
+
+
+            <div className="relative">
+
+              {/* Impact card */}
+              <div className="relative z-10 rounded-[30px] bg-[#0b5338] text-white p-7 md:p-10 shadow-[0_30px_70px_rgba(20,65,40,0.18)]">
+
+                <p className="text-xs uppercase tracking-[0.22em] text-white/50">
+                  Your participation
+                </p>
+
+                <div className="grid grid-cols-2 mt-8">
+
+                  <ImpactStat
+                    icon="♡"
+                    number="10%"
+                    text="minimum contribution"
+                  />
+
+                  <ImpactStat
+                    icon="◒"
+                    number="5"
+                    text="scores tracked"
+                  />
+
+                  <ImpactStat
+                    icon="♕"
+                    number="1×"
+                    text="monthly draw"
+                  />
+
+                  <ImpactStat
+                    icon="∞"
+                    number="∞"
+                    text="potential impact"
+                    last
+                  />
+
+                </div>
+
+              </div>
+
+
+              {/* Golf ball decoration */}
+              <div className="absolute -right-8 -bottom-14 w-44 h-44 rounded-full bg-[#dcebd2] flex items-center justify-center">
+
+                <div
+                  className="w-28 h-28 rounded-full bg-cover bg-center rounded-full"
+                  style={{
+                    backgroundImage:
+                      "url('https://images.unsplash.com/photo-1592919505780-303950717480?auto=format&fit=crop&w=500&q=80')",
+                  }}
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          FINAL CTA
+      ===================================================== */}
+      <section
+        className="relative text-white overflow-hidden bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, rgba(3,48,34,0.96), rgba(3,48,34,0.72), rgba(3,48,34,0.55)), url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1800&q=85')",
+        }}
+      >
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-28 md:py-32">
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+            <div>
+
+              <SectionLabel
+                number="04"
+                text="JOIN DIGITAL HEROES"
+                light
+              />
+
+              <h2 className="mt-7 text-5xl md:text-7xl font-semibold tracking-[-0.06em] leading-[0.9]">
+
+                Ready to play
+
+                <br />
+
+                <span className="text-[#8ee276]">
+                  with purpose?
+                </span>
+
+              </h2>
+
+            </div>
+
+
+            <div>
+
+              <p className="max-w-md text-white/65 leading-7">
                 Join Digital Heroes and make every month count.
                 Play your game, support a cause and become part
                 of something bigger.
@@ -431,83 +519,226 @@ function Home() {
 
               <button
                 onClick={() => navigate("/signup")}
-                className="mt-9 px-8 py-4 rounded-full bg-[#47745f] text-white font-semibold hover:bg-[#3c654f] transition shadow-sm"
+                className="group mt-8 px-7 py-4 rounded-full bg-[#8ee276] text-[#103523] font-bold hover:bg-[#a0ed89] transition"
               >
-                Become a Digital Hero →
+                Become a Digital Hero
+
+                <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
               </button>
 
             </div>
 
           </div>
 
-        </section>
 
-      </main>
+          {/* Bottom branding */}
+          <div className="mt-20 pt-6 border-t border-white/15 flex items-center justify-between">
 
+            <div className="flex items-center gap-3">
 
+              <span className="text-2xl font-black italic">
+                DH
+              </span>
 
+              <span className="text-xs uppercase tracking-[0.2em] text-white/60">
+                Digital Heroes
+              </span>
+
+            </div>
+
+            <p className="text-xs text-white/40">
+              Play with purpose.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
 
     </div>
   );
 }
 
 
-/* ================= COMPONENTS ================= */
+/* =========================================================
+   NAV LINK
+========================================================= */
 
-function Stat({ number, text, last }) {
+function NavLink({
+  label,
+  active,
+  onClick,
+}) {
   return (
-    <div
-      className={`py-8 md:py-10 md:px-7 ${
-        !last ? "border-r border-[#c5ccc3]" : ""
+    <button
+      onClick={onClick}
+      className={`relative text-sm transition ${
+        active
+          ? "text-white"
+          : "text-white/65 hover:text-white"
       }`}
     >
-      <p className="text-4xl md:text-5xl font-semibold tracking-tight">
+      {label}
+
+      {active && (
+        <span className="absolute -bottom-4 left-0 right-0 mx-auto w-7 h-0.5 rounded-full bg-[#8ee276]" />
+      )}
+    </button>
+  );
+}
+
+
+/* =========================================================
+   HERO STAT
+========================================================= */
+
+function HeroStat({
+  icon,
+  number,
+  text,
+  last,
+}) {
+  return (
+    <div
+      className={`py-7 md:py-8 px-5 md:px-7 text-center ${
+        !last
+          ? "border-r border-white/10"
+          : ""
+      }`}
+    >
+
+      <div className="text-[#8ee276] text-xl mb-3">
+        {icon}
+      </div>
+
+      <p className="text-3xl md:text-4xl font-semibold tracking-tight">
         {number}
       </p>
 
-      <p className="mt-3 text-sm text-[#68736c]">
+      <p className="mt-2 text-xs md:text-sm text-white/50">
         {text}
       </p>
+
     </div>
   );
 }
 
 
-function ProcessCard({ number, title, description, last }) {
+/* =========================================================
+   SECTION LABEL
+========================================================= */
+
+function SectionLabel({
+  number,
+  text,
+  light = false,
+}) {
   return (
     <div
-      className={`py-10 md:py-12 ${
-        !last ? "md:border-r border-[#c3cac2]" : ""
-      } ${
-        number !== "01" ? "md:px-10" : "md:pr-10"
+      className={`flex items-center gap-3 text-[10px] md:text-xs font-semibold tracking-[0.25em] ${
+        light
+          ? "text-[#8ee276]"
+          : "text-[#43a55e]"
       }`}
     >
-      <p className="text-sm font-medium text-[#789181]">
-        {number}
-      </p>
+      <span
+        className={`w-7 h-px ${
+          light
+            ? "bg-[#8ee276]"
+            : "bg-[#43a55e]"
+        }`}
+      />
 
-      <h3 className="text-2xl md:text-3xl font-semibold mt-8 tracking-tight">
+      <span>
+        {number} · {text}
+      </span>
+    </div>
+  );
+}
+
+
+/* =========================================================
+   PROCESS CARD
+========================================================= */
+
+function ProcessCard({
+  number,
+  title,
+  description,
+  icon,
+}) {
+  return (
+    <div className="group relative rounded-[24px] bg-[#0c4934] border border-white/10 p-7 md:p-8 hover:bg-[#10553d] hover:-translate-y-1 transition-all duration-300">
+
+      <div className="flex items-center justify-between">
+
+        <div className="w-12 h-12 rounded-full bg-[#8ee276] text-[#17412d] flex items-center justify-center text-lg">
+          {icon}
+        </div>
+
+        <span className="text-xs font-semibold text-white/40">
+          {number}
+        </span>
+
+      </div>
+
+      <h3 className="mt-12 text-2xl font-semibold">
         {title}
       </h3>
 
-      <p className="mt-4 text-[#59645d] leading-relaxed max-w-sm">
+      <p className="mt-4 text-sm leading-6 text-white/55">
         {description}
       </p>
+
+   
+
     </div>
   );
 }
 
 
-function ImpactStat({ number, text }) {
-  return (
-    <div className="py-7 border-b border-white/15 last:border-b-0">
-      <p className="text-4xl md:text-5xl font-semibold">
-        {number}
-      </p>
+/* =========================================================
+   IMPACT STAT
+========================================================= */
 
-      <p className="mt-2 text-sm text-white/55">
-        {text}
-      </p>
+function ImpactStat({
+  icon,
+  number,
+  text,
+  last,
+}) {
+  return (
+    <div
+      className={`py-6 ${
+        !last
+          ? "border-b border-white/10"
+          : ""
+      }`}
+    >
+
+      <div className="flex items-center gap-3">
+
+        <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#8ee276]">
+          {icon}
+        </div>
+
+        <div>
+
+          <p className="text-3xl md:text-4xl font-semibold">
+            {number}
+          </p>
+
+          <p className="mt-1 text-xs text-white/45">
+            {text}
+          </p>
+
+        </div>
+
+      </div>
+
     </div>
   );
 }

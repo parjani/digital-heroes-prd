@@ -1,217 +1,225 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function UserHeader() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { profile, logout } = useAuth();
+  const { profile, user } = useAuth();
 
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const getPageInfo = () => {
+    switch (location.pathname) {
+      case "/dashboard":
+        return {
+          eyebrow: "Overview",
+          title: "Dashboard",
+          description: "Your performance at a glance",
+        };
 
-  const isActive = (path) => {
-    return location.pathname === path;
+      case "/dashboard/scores":
+        return {
+          eyebrow: "Performance",
+          title: "My Scores",
+          description: "Track your latest golf performance",
+        };
+
+      case "/dashboard/charity":
+        return {
+          eyebrow: "Impact",
+          title: "My Charity",
+          description: "See the cause you're supporting",
+        };
+
+      case "/dashboard/subscription":
+        return {
+          eyebrow: "Membership",
+          title: "Subscription",
+          description: "Manage your Digital Heroes membership",
+        };
+
+      case "/dashboard/draw":
+        return {
+          eyebrow: "Opportunity",
+          title: "Monthly Draw",
+          description: "Your chance to win while giving back",
+        };
+
+      case "/dashboard/winnings":
+        return {
+          eyebrow: "Rewards",
+          title: "My Winnings",
+          description: "View your draw history and rewards",
+        };
+
+      default:
+        return {
+          eyebrow: "Digital Heroes",
+          title: "Dashboard",
+          description: "Performance with purpose",
+        };
+    }
   };
 
-  const navigation = [
-    {
-      label: "Dashboard",
-      path: "/dashboard",
-    },
-    {
-      label: "Scores",
-      path: "/dashboard/scores",
-    },
-    {
-      label: "Charity",
-      path: "/dashboard/charity",
-    },
-    {
-      label: "Subscription",
-      path: "/dashboard/subscription",
-    },
-    {
-      label: "Draw",
-      path: "/dashboard/draw",
-    },
-    {
-      label: "Winnings",
-      path: "/dashboard/winnings",
-    },
-  ];
+  const page = getPageInfo();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
+  const displayName =
+    profile?.full_name ||
+    user?.email?.split("@")[0] ||
+    "Digital Hero";
+
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-50 px-4 pt-4">
-      <nav className="max-w-7xl mx-auto">
+    <header className="sticky top-0 z-30 w-full bg-[#0d2117] text-white border-b border-white/10">
 
-        <div className="bg-[#f6f4ed]/95 backdrop-blur-md border border-[#c8d0c6] rounded-[28px] shadow-sm">
+      {/* Decorative background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 right-10 w-80 h-80 rounded-full bg-[#8ee276]/10 blur-3xl" />
 
-          {/* Main Header */}
-          <div className="px-4 py-3">
+        <div className="absolute top-0 right-1/3 w-64 h-64 rounded-full bg-[#47775f]/10 blur-3xl" />
+      </div>
 
-            <div className="flex items-center justify-between">
+      <div className="relative min-h-[75px] px-5 sm:px-7 lg:px-10 flex items-center justify-between">
 
-              {/* Logo */}
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-2 px-2 sm:px-4"
-              >
-                <div className="w-9 h-9 rounded-full bg-[#47745f] flex items-center justify-center text-[#f1f0e8] font-bold text-sm">
-                  DH
-                </div>
+        {/* ================= LEFT ================= */}
 
-                <div className="text-left leading-none">
-                  <div className="text-lg font-bold tracking-tight text-[#101813]">
-                    digital.
-                  </div>
+        <div className="min-w-0">
 
-                  <div className="text-[9px] uppercase tracking-[0.2em] text-[#47745f]">
-                    Heroes
-                  </div>
-                </div>
-              </button>
+          {/* <div className="flex items-center gap-2 mb-2">
+
+            <span className="w-7 h-[2px] bg-[#8ee276]" />
+
+            <span className="text-[9px] uppercase tracking-[0.25em] text-[#8ee276] font-semibold">
+              {page.eyebrow}
+            </span>
+
+          </div> */}
+
+          <h1 className="text-lg sm:text-xl lg:text-xl tracking-[-0.04em] text-white">
+            {page.title}
+          </h1>
+
+          <p className="hidden sm:block mt-1.5 text-xs text-white/45">
+            {page.description}
+          </p>
+
+        </div>
 
 
-              {/* Desktop Navigation */}
-              <div className="hidden xl:flex items-center gap-1">
+        {/* ================= RIGHT ================= */}
 
-                {navigation.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={`px-4 py-2.5 rounded-full text-sm transition ${
-                      isActive(item.path)
-                        ? "bg-[#cbd9c8] text-[#101813] font-medium"
-                        : "text-[#4e5751] hover:bg-[#e2e5dc]"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+        <div className="flex items-center gap-3 sm:gap-5">
 
+          {/* Membership */}
+
+          <div className="hidden md:flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/[0.06] border border-white/10">
+
+            <span className="relative flex w-2 h-2">
+              <span className="absolute inset-0 rounded-full bg-[#8ee276] animate-ping opacity-50" />
+              <span className="relative w-2 h-2 rounded-full bg-[#8ee276]" />
+            </span>
+
+            <span className="text-[9px] uppercase tracking-[0.15em] font-semibold text-white/60">
+              Active Member
+            </span>
+
+          </div>
+
+
+          {/* Notification */}
+
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="
+              relative
+              w-11 h-11
+              rounded-full
+              bg-white/[0.06]
+              border border-white/10
+              flex items-center justify-center
+              text-white/70
+              hover:bg-[#8ee276]
+              hover:text-[#103523]
+              hover:border-[#8ee276]
+              transition-all
+            "
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+
+            <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#8ee276]" />
+          </button>
+
+
+          {/* Divider */}
+
+          <div className="hidden sm:block h-9 w-px bg-white/10" />
+
+
+          {/* Profile */}
+
+          <div className="flex items-center gap-3">
+
+            <div className="relative">
+
+              <div className="
+                w-11 h-11
+                rounded-full
+                bg-[#8ee276]
+                text-[#103523]
+                flex items-center justify-center
+                text-sm
+                font-bold
+              ">
+                {initial}
               </div>
 
+              <span className="
+                absolute
+                right-0
+                bottom-0
+                w-3
+                h-3
+                rounded-full
+                bg-[#8ee276]
+                border-2
+                border-[#0d2117]"
+              />
 
-              {/* User Area */}
-              <div className="flex items-center gap-2">
-
-                {/* User Name */}
-                <div className="hidden lg:flex items-center gap-3 px-3">
-
-                  <div className="text-right">
-                    <p className="text-xs font-semibold text-[#101813]">
-                      {profile?.full_name || "Digital Hero"}
-                    </p>
-
-                    <p className="text-[9px] uppercase tracking-[0.15em] text-[#7a837c]">
-                      Member
-                    </p>
-                  </div>
-
-                  <div className="w-9 h-9 rounded-full bg-[#dfe5da] border border-[#c8d0c6] flex items-center justify-center text-sm font-semibold text-[#47745f]">
-                    {(profile?.full_name || "D")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-
-                </div>
+            </div>
 
 
-                {/* Logout */}
-                <button
-                  onClick={handleLogout}
-                  className="hidden sm:block px-5 py-2.5 rounded-full border border-[#c8d0c6] text-sm text-[#3e4842] hover:bg-[#e2e5dc] transition"
-                >
-                  Logout
-                </button>
+            <div className="hidden sm:block">
 
+              <p className="max-w-[160px] truncate text-sm font-semibold text-white">
+                {displayName}
+              </p>
 
-                {/* Mobile Menu Button */}
-                <button
-                  onClick={() => setMobileOpen(!mobileOpen)}
-                  className="xl:hidden w-10 h-10 rounded-full bg-[#47745f] text-white flex items-center justify-center text-lg"
-                  aria-label="Toggle menu"
-                >
-                  {mobileOpen ? "×" : "☰"}
-                </button>
-
-              </div>
+              <p className="mt-1 text-[9px] uppercase tracking-[0.15em] text-white/35">
+                Digital Hero
+              </p>
 
             </div>
 
           </div>
 
-
-          {/* Mobile Navigation */}
-          {mobileOpen && (
-            <div className="xl:hidden border-t border-[#c8d0c6] px-4 py-4">
-
-              <div className="grid grid-cols-2 gap-2">
-
-                {navigation.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => {
-                      navigate(item.path);
-                      setMobileOpen(false);
-                    }}
-                    className={`px-4 py-3 rounded-2xl text-left text-sm transition ${
-                      isActive(item.path)
-                        ? "bg-[#cbd9c8] text-[#101813] font-medium"
-                        : "bg-[#eef0e9] text-[#4e5751] hover:bg-[#e2e5dc]"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-
-              </div>
-
-
-              {/* Mobile User */}
-              <div className="mt-4 pt-4 border-t border-[#c8d0c6] flex items-center justify-between">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="w-9 h-9 rounded-full bg-[#dfe5da] border border-[#c8d0c6] flex items-center justify-center text-sm font-semibold text-[#47745f]">
-                    {(profile?.full_name || "D")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-semibold text-[#101813]">
-                      {profile?.full_name || "Digital Hero"}
-                    </p>
-
-                    <p className="text-[9px] uppercase tracking-[0.15em] text-[#7a837c]">
-                      Member
-                    </p>
-                  </div>
-
-                </div>
-
-
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 rounded-full border border-[#c8d0c6] text-xs text-[#3e4842] hover:bg-[#e2e5dc] transition"
-                >
-                  Logout
-                </button>
-
-              </div>
-
-            </div>
-          )}
-
         </div>
 
-      </nav>
+      </div>
+
+      {/* Lime accent */}
+      <div className="h-[2px] bg-[#8ee276]" />
+
     </header>
   );
 }

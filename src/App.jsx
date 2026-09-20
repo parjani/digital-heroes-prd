@@ -35,6 +35,8 @@ import AdminHeader from "./components/AdminHeader";
 import DemoPayment from "./pages/DemoPayment";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
+import UserLayout from "./components/userLayout";
+import AdminLayout from "./components/AdminLayout";
 
 
 /* =========================================
@@ -56,30 +58,27 @@ function PublicLayout({ children }) {
 }
 
 
-/* =========================================
-   USER LAYOUT
-========================================= */
-
-function UserLayout({ children }) {
+function PublicLayoutNoHeaderAndFooter({ children }) {
   return (
     <div className="min-h-screen bg-[#f3f1e8] text-[#101813]">
-      <UserHeader />
+      {/* <Header /> */}
 
       <main>
         {children}
       </main>
+
+      {/* <Footer /> */}
     </div>
   );
 }
 
-function AdminLayout({ children }) {
-  return (
-    <div className="min-h-screen bg-[#f3f1e8] text-[#101813]">
-      <AdminHeader />
-      <main>{children}</main>
-    </div>
-  );
-}
+/* =========================================
+   USER LAYOUT
+========================================= */
+
+
+
+
 
 function AdminOnlyRoute({ element }) {
   return (
@@ -137,18 +136,18 @@ function App() {
       <Route
         path="/login"
         element={
-          <PublicLayout>
+          <PublicLayoutNoHeaderAndFooter>
             <Login />
-          </PublicLayout>
+          </PublicLayoutNoHeaderAndFooter>
         }
       />
 
       <Route
         path="/signup"
         element={
-          <PublicLayout>
+          <PublicLayoutNoHeaderAndFooter>
             <Signup />
-          </PublicLayout>
+          </PublicLayoutNoHeaderAndFooter>
         }
       />
 

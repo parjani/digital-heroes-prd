@@ -59,7 +59,7 @@ function Signup() {
 
     if (data.user) {
       setSuccess(
-        "Account created successfully. Please check your email to verify your account."
+        "Account created successfully."
       );
 
       setTimeout(() => {
@@ -70,255 +70,417 @@ function Signup() {
     setLoading(false);
   }
 
- return (
-  <div className="min-h-screen bg-[#f3f1e8] text-[#101813] flex items-center justify-center px-5 py-10">
+  return (
+    <div className="min-h-screen bg-[#f3f1e8] flex items-center justify-center px-5 py-8 md:py-12">
 
-    <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-[#f8f7f1] border border-[#cfd4c8] rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(16,24,19,0.08)]">
+      <div className="w-full max-w-6xl overflow-hidden rounded-[2rem] bg-[#f8f7f1] border border-[#d5d9d0] shadow-[0_30px_80px_rgba(16,24,19,0.10)]">
 
-      {/* LEFT — BRAND / MESSAGE */}
-      <div className="hidden lg:flex relative bg-[#dfe5da] p-12 xl:p-16 flex-col justify-between overflow-hidden">
-
-        {/* Decorative shapes */}
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#47775f]/20" />
-        <div className="absolute -bottom-32 -left-24 w-80 h-80 rounded-full bg-[#47775f]/10" />
-
-        <div className="relative z-10">
-
-          <button
-            onClick={() => navigate("/")}
-            className="text-2xl font-semibold tracking-tight text-[#101813]"
-          >
-            digital.
-            <span className="block text-xs font-medium tracking-[0.25em] text-[#47775f] mt-1">
-              HEROES
-            </span>
-          </button>
-
-        </div>
-
-        <div className="relative z-10">
-
-          <p className="text-xs uppercase tracking-[0.25em] text-[#47775f] font-medium mb-6">
-            § 01 · Join the movement
-          </p>
-
-          <h2 className="text-5xl xl:text-6xl font-semibold tracking-[-0.04em] leading-[0.95]">
-            Your game.
-            <br />
-            Your impact.
-            <br />
-            <span className="text-[#47775f]/55">
-              Something bigger.
-            </span>
-          </h2>
-
-          <p className="mt-7 max-w-sm text-[#4f5952] leading-relaxed">
-            Create your Digital Heroes account and connect your golf
-            performance with charitable giving and the monthly draw.
-          </p>
-
-        </div>
-
-        <div className="relative z-10 flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-[#687169]">
-          <span className="w-2 h-2 rounded-full bg-[#47775f]" />
-          Play with purpose
-        </div>
-
-      </div>
+        <div className="grid lg:grid-cols-2">
 
 
-      {/* RIGHT — SIGNUP FORM */}
-      <div className="p-7 sm:p-10 lg:p-12 xl:p-16">
+          {/* ===================================================== */}
+          {/* LEFT — BRAND / MESSAGE */}
+          {/* ===================================================== */}
 
-        {/* Mobile logo */}
-        <div className="lg:hidden mb-10">
+          <div className="relative hidden lg:flex min-h-[760px] overflow-hidden bg-[#0d2117] text-white p-12 xl:p-16 flex-col justify-between">
 
-          <button
-            onClick={() => navigate("/")}
-            className="text-2xl font-semibold tracking-tight"
-          >
-            digital.
-            <span className="text-[#47775f]">
-              HEROES
-            </span>
-          </button>
+            {/* Decorative glow */}
+            <div className="absolute -top-40 -right-32 w-[500px] h-[500px] rounded-full bg-[#8ee276]/10 blur-3xl pointer-events-none" />
 
-        </div>
+            <div className="absolute -bottom-40 -left-32 w-[480px] h-[480px] rounded-full bg-[#47775f]/20 blur-3xl pointer-events-none" />
 
 
-        {/* Header */}
-        <div className="mb-9">
-
-          <p className="text-xs uppercase tracking-[0.22em] text-[#47775f] font-medium">
-            § 02 · Create your account
-          </p>
-
-          <h1 className="mt-4 text-4xl sm:text-5xl font-semibold tracking-[-0.035em] leading-tight">
-            Become a
-            <br />
-            Digital Hero.
-          </h1>
-
-          <p className="mt-4 text-[#687169] leading-relaxed">
-            Start tracking your game, choose a cause and play with purpose.
-          </p>
-
-        </div>
+            {/* Decorative circle */}
+            <div className="absolute right-[-100px] bottom-[100px] w-[300px] h-[300px] rounded-full border-[45px] border-white/[0.03] pointer-events-none" />
 
 
-        {/* Form */}
-        <form onSubmit={handleSignup} className="space-y-5">
+            {/* Brand */}
+            <div className="relative z-10">
 
-          {/* Full name */}
-          <div>
+              <button
+                onClick={() => navigate("/")}
+                className="group flex items-center gap-3"
+              >
 
-            <label
-              htmlFor="fullName"
-              className="block mb-2 text-sm font-medium text-[#303a34]"
-            >
-              Full name
-            </label>
+                <div className="w-11 h-11 rounded-full bg-[#8ee276] text-[#103523] flex items-center justify-center font-black italic tracking-[-0.08em] text-sm group-hover:scale-105 transition-transform">
+                  DH
+                </div>
 
-            <input
-              id="fullName"
-              type="text"
-              name="fullName"
-              placeholder="Your full name"
-              value={form.fullName}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-[#c9d0c6] bg-[#f3f1e8] px-4 py-3.5 text-[#101813] placeholder:text-[#9a9f99] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10"
-            />
+                <div className="text-left leading-none">
+
+                  <div className="text-lg font-bold tracking-[-0.03em]">
+                    digital.
+                  </div>
+
+                  <div className="mt-1 text-[9px] uppercase tracking-[0.24em] text-[#8ee276] font-semibold">
+                    Heroes
+                  </div>
+
+                </div>
+
+              </button>
+
+            </div>
+
+
+            {/* Main message */}
+            <div className="relative z-10">
+
+              <div className="flex items-center gap-3 mb-7">
+
+                <span className="w-8 h-px bg-[#8ee276]" />
+
+                <span className="text-[10px] uppercase tracking-[0.25em] text-[#8ee276] font-semibold">
+                  Join the movement
+                </span>
+
+              </div>
+
+
+              <h2 className="text-5xl xl:text-6xl font-semibold tracking-[-0.06em] leading-[0.9]">
+
+                Your game.
+
+                <br />
+
+                <span className="text-[#8ee276]">
+                  Your impact.
+                </span>
+
+                <br />
+
+                <span className="text-white/45">
+                  Something bigger.
+                </span>
+
+              </h2>
+
+
+              <p className="mt-8 max-w-md text-sm leading-7 text-white/50">
+                Create your Digital Heroes account and connect your golf
+                performance with charitable giving and the monthly draw.
+              </p>
+
+
+              {/* Small stats */}
+              <div className="mt-10 flex gap-8">
+
+                <div>
+
+                  <p className="text-2xl font-semibold text-white">
+                    5
+                  </p>
+
+                  <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/35">
+                    Latest scores
+                  </p>
+
+                </div>
+
+
+                <div className="w-px bg-white/10" />
+
+
+                <div>
+
+                  <p className="text-2xl font-semibold text-[#8ee276]">
+                    10%+
+                  </p>
+
+                  <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/35">
+                    Charity contribution
+                  </p>
+
+                </div>
+
+
+                <div className="w-px bg-white/10" />
+
+
+                <div>
+
+                  <p className="text-2xl font-semibold text-white">
+                    01
+                  </p>
+
+                  <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/35">
+                    Monthly draw
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Bottom */}
+            <div className="relative z-10 flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-white/35">
+
+              <span className="w-2 h-2 rounded-full bg-[#8ee276] shadow-[0_0_12px_rgba(142,226,118,0.6)]" />
+
+              Play with purpose
+
+            </div>
 
           </div>
 
 
-          {/* Email */}
-          <div>
+          {/* ===================================================== */}
+          {/* RIGHT — SIGNUP */}
+          {/* ===================================================== */}
 
-            <label
-              htmlFor="email"
-              className="block mb-2 text-sm font-medium text-[#303a34]"
+          <div className="p-7 sm:p-10 lg:p-12 xl:p-16">
+
+            {/* Mobile brand */}
+            <div className="lg:hidden mb-10">
+
+              <button
+                onClick={() => navigate("/")}
+                className="flex items-center gap-3"
+              >
+
+                <div className="w-10 h-10 rounded-full bg-[#0d2117] text-[#8ee276] flex items-center justify-center font-black italic text-sm">
+                  DH
+                </div>
+
+                <div className="text-left leading-none">
+
+                  <div className="text-lg font-bold">
+                    digital.
+                  </div>
+
+                  <div className="mt-1 text-[9px] uppercase tracking-[0.24em] text-[#47775f] font-semibold">
+                    Heroes
+                  </div>
+
+                </div>
+
+              </button>
+
+            </div>
+
+
+            {/* Header */}
+            <div className="mb-9">
+
+              <div className="flex items-center gap-3 mb-5">
+
+                <span className="text-[10px] uppercase tracking-[0.25em] text-[#47775f] font-semibold">
+                  Create your account
+                </span>
+
+                <span className="w-8 h-px bg-[#47775f]/40" />
+
+                <span className="text-[10px] text-[#8a918b]">
+                  01
+                </span>
+
+              </div>
+
+
+              <h1 className="text-4xl sm:text-5xl font-semibold tracking-[-0.055em] leading-[0.95]">
+
+                Become a
+
+                <span className="block text-[#47775f]">
+                  Digital Hero.
+                </span>
+
+              </h1>
+
+
+              <p className="mt-5 text-sm md:text-base leading-7 text-[#687169] max-w-md">
+                Start tracking your game, choose a cause and play with
+                purpose.
+              </p>
+
+            </div>
+
+
+            {/* ================================================= */}
+            {/* FORM */}
+            {/* ================================================= */}
+
+            <form
+              onSubmit={handleSignup}
+              className="space-y-5"
             >
-              Email address
-            </label>
 
-            <input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-[#c9d0c6] bg-[#f3f1e8] px-4 py-3.5 text-[#101813] placeholder:text-[#9a9f99] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10"
-            />
+              {/* Full name */}
+              <div>
 
-          </div>
+                <label
+                  htmlFor="fullName"
+                  className="block mb-2 text-xs uppercase tracking-[0.12em] font-semibold text-[#303a34]"
+                >
+                  Full name
+                </label>
+
+                <input
+                  id="fullName"
+                  type="text"
+                  name="fullName"
+                  placeholder="Your full name"
+                  value={form.fullName}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl border border-[#d0d6cd] bg-[#f3f1e8] px-4 py-3.5 text-sm text-[#101813] placeholder:text-[#9a9f99] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10"
+                />
+
+              </div>
 
 
-          {/* Password */}
-          <div>
+              {/* Email */}
+              <div>
 
-            <label
-              htmlFor="password"
-              className="block mb-2 text-sm font-medium text-[#303a34]"
-            >
-              Password
-            </label>
+                <label
+                  htmlFor="email"
+                  className="block mb-2 text-xs uppercase tracking-[0.12em] font-semibold text-[#303a34]"
+                >
+                  Email address
+                </label>
 
-            <input
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Minimum 6 characters"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-[#c9d0c6] bg-[#f3f1e8] px-4 py-3.5 text-[#101813] placeholder:text-[#9a9f99] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10"
-            />
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl border border-[#d0d6cd] bg-[#f3f1e8] px-4 py-3.5 text-sm text-[#101813] placeholder:text-[#9a9f99] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10"
+                />
 
-            <p className="mt-2 text-xs text-[#8a918b]">
-              Use at least 6 characters.
+              </div>
+
+
+              {/* Password */}
+              <div>
+
+                <label
+                  htmlFor="password"
+                  className="block mb-2 text-xs uppercase tracking-[0.12em] font-semibold text-[#303a34]"
+                >
+                  Password
+                </label>
+
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  placeholder="Minimum 6 characters"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl border border-[#d0d6cd] bg-[#f3f1e8] px-4 py-3.5 text-sm text-[#101813] placeholder:text-[#9a9f99] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10"
+                />
+
+                <div className="mt-2 flex items-center gap-2">
+
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#8ee276]" />
+
+                  <p className="text-[11px] text-[#8a918b]">
+                    Use at least 6 characters.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              {/* Error */}
+              {error && (
+
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700">
+                  {error}
+                </div>
+
+              )}
+
+
+              {/* Success */}
+              {success && (
+
+                <div className="rounded-2xl border border-[#a9c5b3] bg-[#e7f0e9] px-4 py-3.5 text-sm leading-6 text-[#356b56]">
+                  {success}
+                </div>
+
+              )}
+
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="group w-full rounded-2xl bg-[#0d2117] px-5 py-4 text-white font-semibold hover:bg-[#173c28] disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+              >
+
+                <span className="flex items-center justify-center gap-3">
+
+                  {loading
+                    ? "Creating account..."
+                    : "Create Digital Heroes account"}
+
+                  {!loading && (
+
+                    <span className="w-7 h-7 rounded-full bg-[#8ee276] text-[#103523] flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                      →
+                    </span>
+
+                  )}
+
+                </span>
+
+              </button>
+
+            </form>
+
+
+            {/* ================================================= */}
+            {/* LOGIN */}
+            {/* ================================================= */}
+
+            <div className="flex items-center gap-4 my-8">
+
+              <div className="h-px flex-1 bg-[#d7dbd3]" />
+
+              <span className="text-[9px] uppercase tracking-[0.16em] text-[#9a9f99] whitespace-nowrap">
+                Already a member?
+              </span>
+
+              <div className="h-px flex-1 bg-[#d7dbd3]" />
+
+            </div>
+
+
+            <p className="text-center text-sm text-[#687169]">
+
+              Already have an account?{" "}
+
+              <Link
+                to="/login"
+                className="font-semibold text-[#47775f] hover:text-[#315b46] transition"
+              >
+                Login →
+              </Link>
+
             </p>
 
-          </div>
 
+            {/* Bottom info */}
+            <div className="mt-10 pt-6 border-t border-[#d7dbd3]">
 
-          {/* Error */}
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[10px] uppercase tracking-[0.14em] text-[#8a918b]">
 
-
-          {/* Success */}
-          {success && (
-            <div className="rounded-xl border border-[#a9c5b3] bg-[#e7f0e9] px-4 py-3 text-sm text-[#356b56]">
-              {success}
-            </div>
-          )}
-
-
-          {/* Create account */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="group w-full rounded-xl bg-[#47775f] px-5 py-3.5 text-white font-semibold transition hover:bg-[#38644f] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <span className="flex items-center justify-center gap-3">
-              {loading ? "Creating account..." : "Create Account"}
-
-              {!loading && (
-                <span className="text-lg transition-transform group-hover:translate-x-1">
-                  →
+                <span>
+                  Digital Heroes
                 </span>
-              )}
-            </span>
-          </button>
 
-        </form>
+                <span>
+                  Performance with purpose.
+                </span>
 
+              </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-8">
-
-          <div className="h-px flex-1 bg-[#d7dbd3]" />
-
-          <span className="text-xs uppercase tracking-[0.15em] text-[#9a9f99]">
-            Already a member?
-          </span>
-
-          <div className="h-px flex-1 bg-[#d7dbd3]" />
-
-        </div>
-
-
-        {/* Login */}
-        <p className="text-center text-sm text-[#687169]">
-
-          Already have an account?{" "}
-
-          <Link
-            to="/login"
-            className="font-semibold text-[#47775f] hover:text-[#38644f] transition"
-          >
-            Login →
-          </Link>
-
-        </p>
-
-
-        {/* Bottom info */}
-        <div className="mt-10 pt-6 border-t border-[#d7dbd3]">
-
-          <div className="flex items-center justify-between text-xs text-[#8a918b]">
-
-            <span>
-              Digital Heroes
-            </span>
-
-            <span>
-              Play with purpose.
-            </span>
+            </div>
 
           </div>
 
@@ -327,9 +489,7 @@ function Signup() {
       </div>
 
     </div>
-
-  </div>
-);
+  );
 }
 
 export default Signup;

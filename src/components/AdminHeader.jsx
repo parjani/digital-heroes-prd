@@ -1,174 +1,398 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function AdminHeader() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const navigate = useNavigate();
   const location = useLocation();
-  const { profile, logout } = useAuth();
+  const { profile, user } = useAuth();
 
-  const navItems = [
-    { label: "Overview", path: "/admin" },
-    { label: "Users", path: "/admin/users" },
-    { label: "Draws", path: "/admin/draws" },
-    { label: "Charities", path: "/admin/charities" },
-    { label: "Winners", path: "/admin/winners" },
-    { label: "Reports", path: "/admin/reports" },
-  ];
+  const getPageInfo = () => {
+    switch (location.pathname) {
+      case "/admin":
+        return {
+          eyebrow: "Control Center",
+          title: "Overview",
+          description: "Monitor the Digital Heroes platform",
+        };
 
-  const isActive = (path) => {
-    if (path === "/admin") {
-      return location.pathname === "/admin";
+      case "/admin/users":
+        return {
+          eyebrow: "Management",
+          title: "Users",
+          description: "Manage members and account activity",
+        };
+
+      case "/admin/draws":
+        return {
+          eyebrow: "Operations",
+          title: "Draws",
+          description: "Create, simulate and publish monthly draws",
+        };
+
+      case "/admin/charities":
+        return {
+          eyebrow: "Impact",
+          title: "Charities",
+          description: "Manage supported causes and contributions",
+        };
+
+      case "/admin/winners":
+        return {
+          eyebrow: "Rewards",
+          title: "Winners",
+          description: "Review winners and reward verification",
+        };
+
+      case "/admin/reports":
+        return {
+          eyebrow: "Analytics",
+          title: "Reports",
+          description: "Review platform performance and impact",
+        };
+
+      default:
+        return {
+          eyebrow: "Admin Console",
+          title: "Overview",
+          description: "Digital Heroes administration",
+        };
     }
-
-    return location.pathname.startsWith(path);
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
+  const page = getPageInfo();
+
+  const displayName =
+    profile?.full_name ||
+    user?.email?.split("@")[0] ||
+    "Administrator";
+
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#cfd4c8] bg-[#f8f7f1]/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="flex h-20 items-center justify-between">
-          {/* Logo */}
-          <button
-            onClick={() => navigate("/admin")}
-            className="shrink-0 text-left"
-          >
-            <div className="text-xl font-semibold tracking-[-0.04em] text-[#101813]">
-              digital.
-              <span className="text-[#47775f]">HEROES</span>
-            </div>
+    <header
+      className="
+        sticky
+        top-[68px]
+        lg:top-0
+        z-40
+        w-full
+        bg-[#0b1711]
+        text-white
+        border-b
+        border-white/10
+      "
+    >
 
-            <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#687169]">
-              Admin console
-            </div>
-          </button>
+      {/* Background */}
 
-          {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-1 lg:flex">
-            {navItems.map((item) => (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
-                  isActive(item.path)
-                    ? "text-[#47775f]"
-                    : "text-[#687169] hover:text-[#101813]"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
 
-          {/* Admin Profile / Logout */}
-          <div className="hidden items-center gap-3 lg:flex">
-            <div className="flex items-center gap-2 border-l border-[#cfd4c8] pl-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#dfe5da] text-sm font-semibold text-[#38644f]">
-                {profile?.full_name?.charAt(0)?.toUpperCase() || "A"}
-              </div>
+        <div className="
+          absolute
+          -top-24
+          right-5
+          sm:right-10
+          w-56
+          sm:w-72
+          h-56
+          sm:h-72
+          rounded-full
+          bg-[#47775f]/15
+          blur-3xl
+        " />
 
-              <div className="hidden xl:block">
-                <p className="max-w-[120px] truncate text-xs font-semibold text-[#101813]">
-                  {profile?.full_name || "Administrator"}
-                </p>
+        <div className="
+          absolute
+          top-0
+          right-1/3
+          w-40
+          sm:w-52
+          h-40
+          sm:h-52
+          rounded-full
+          bg-[#8ee276]/[0.04]
+          blur-3xl"
+        />
 
-                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8a918b]">
-                  Admin
-                </p>
-              </div>
-            </div>
+      </div>
 
-            <button
-              onClick={handleLogout}
-              className="border border-[#cfd4c8] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#687169] transition hover:border-[#101813] hover:text-[#101813]"
-            >
-              Logout
-            </button>
-          </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-10 w-10 items-center justify-center border border-[#cfd4c8] lg:hidden"
-            aria-label="Toggle admin menu"
-          >
-            <div className="space-y-1.5">
-              <span
-                className={`block h-px w-5 bg-[#101813] transition ${
-                  menuOpen ? "translate-y-2 rotate-45" : ""
-                }`}
-              />
-              <span
-                className={`block h-px w-5 bg-[#101813] transition ${
-                  menuOpen ? "opacity-0" : ""
-                }`}
-              />
-              <span
-                className={`block h-px w-5 bg-[#101813] transition ${
-                  menuOpen ? "-translate-y-2 -rotate-45" : ""
-                }`}
-              />
-            </div>
-          </button>
+      {/* Main */}
+
+      <div className="
+        relative
+        min-h-[82px]
+        sm:min-h-[88px]
+        px-4
+        sm:px-6
+        lg:px-8
+        xl:px-10
+        py-4
+        flex
+        items-center
+        justify-between
+        gap-4
+      ">
+
+        {/* LEFT */}
+
+        <div className="min-w-0 flex-1">
+
+          {/* <div className="flex items-center gap-2 mb-1.5">
+
+            <span className="w-4 sm:w-5 h-[2px] bg-[#8ee276] shrink-0" />
+
+            <span className="
+              truncate
+              text-[7px]
+              sm:text-[8px]
+              uppercase
+              tracking-[0.2em]
+              sm:tracking-[0.22em]
+              text-[#8ee276]
+              font-bold
+            ">
+              {page.eyebrow}
+            </span>
+
+          </div> */}
+
+          <h1 className="
+            text-base
+            sm:text-lg
+            lg:text-xl
+            tracking-[-0.035em]
+            text-white
+            truncate
+          ">
+            {page.title}
+          </h1>
+
+          <p className="
+            hidden
+            sm:block
+            mt-1
+            text-[11px]
+            lg:text-xs
+            text-white/40
+            truncate
+          ">
+            {page.description}
+          </p>
+
         </div>
 
-        {/* Mobile Navigation */}
-        {menuOpen && (
-          <div className="border-t border-[#cfd4c8] py-4 lg:hidden">
-            <nav className="flex flex-col">
-              {navItems.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    navigate(item.path);
-                    setMenuOpen(false);
-                  }}
-                  className={`border-b border-[#e7ebe3] px-1 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.14em] transition ${
-                    isActive(item.path)
-                      ? "text-[#47775f]"
-                      : "text-[#687169]"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
 
-            {/* Mobile Admin Info */}
-            <div className="mt-4 flex items-center justify-between border-t border-[#cfd4c8] pt-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#dfe5da] text-sm font-semibold text-[#38644f]">
-                  {profile?.full_name?.charAt(0)?.toUpperCase() || "A"}
-                </div>
+        {/* RIGHT */}
 
-                <div>
-                  <p className="text-xs font-semibold text-[#101813]">
-                    {profile?.full_name || "Administrator"}
-                  </p>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8a918b]">
-                    Admin
-                  </p>
-                </div>
+          {/* System */}
+
+          <div className="
+            hidden
+            md:flex
+            items-center
+            gap-2
+            px-3
+            py-2
+            rounded-lg
+            bg-white/[0.045]
+            border
+            border-white/10
+          ">
+
+            <span className="relative flex w-2 h-2 shrink-0">
+              <span className="absolute inset-0 rounded-full bg-[#8ee276] animate-ping opacity-40" />
+              <span className="relative w-2 h-2 rounded-full bg-[#8ee276]" />
+            </span>
+
+            <div className="leading-none">
+
+              <p className="text-[7px] uppercase tracking-[0.15em] font-bold text-white/30">
+                System
+              </p>
+
+              <p className="mt-1 text-[8px] font-semibold text-[#8ee276]">
+                Operational
+              </p>
+
+            </div>
+
+          </div>
+
+
+          {/* Admin Console */}
+
+          <div className="
+            hidden
+            xl:flex
+            items-center
+            gap-2
+            px-3
+            py-2
+            rounded-lg
+            bg-[#8ee276]/[0.06]
+            border
+            border-[#8ee276]/15
+          ">
+
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-[#8ee276]"
+            >
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M8 9h8" />
+              <path d="M8 13h5" />
+              <path d="M8 17h3" />
+            </svg>
+
+            <span className="
+              text-[8px]
+              uppercase
+              tracking-[0.14em]
+              font-semibold
+              text-white/55
+            ">
+              Admin Console
+            </span>
+
+          </div>
+
+
+          {/* Notification */}
+
+          <button
+            type="button"
+            aria-label="Admin notifications"
+            className="
+              relative
+              w-9
+              h-9
+              sm:w-10
+              sm:h-10
+              rounded-lg
+              bg-white/[0.045]
+              border
+              border-white/10
+              flex
+              items-center
+              justify-center
+              text-white/55
+              hover:bg-[#8ee276]
+              hover:text-[#0b1711]
+              hover:border-[#8ee276]
+              transition-all
+            "
+          >
+
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#8ee276]" />
+
+          </button>
+
+
+          {/* Divider */}
+
+          <div className="hidden sm:block h-8 w-px bg-white/10" />
+
+
+          {/* Profile */}
+
+          <div className="flex items-center gap-2 sm:gap-2.5">
+
+            <div className="relative shrink-0">
+
+              <div className="
+                w-9
+                h-9
+                sm:w-10
+                sm:h-10
+                rounded-lg
+                bg-[#8ee276]
+                text-[#0b1711]
+                flex
+                items-center
+                justify-center
+                text-xs
+                sm:text-sm
+                font-bold
+              ">
+                {initial}
               </div>
 
-              <button
-                onClick={handleLogout}
-                className="border border-[#cfd4c8] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#687169]"
-              >
-                Logout
-              </button>
+              <span className="
+                absolute
+                right-0
+                bottom-0
+                w-2
+                h-2
+                sm:w-2.5
+                sm:h-2.5
+                rounded-full
+                bg-[#8ee276]
+                border-2
+                border-[#0b1711]"
+              />
+
             </div>
+
+            <div className="hidden sm:block">
+
+              <p className="
+                max-w-[120px]
+                lg:max-w-[150px]
+                truncate
+                text-xs
+                font-semibold
+                text-white
+              ">
+                {displayName}
+              </p>
+
+              <p className="
+                mt-1
+                text-[8px]
+                uppercase
+                tracking-[0.14em]
+                text-[#8ee276]/60
+                font-semibold
+              ">
+                Administrator
+              </p>
+
+            </div>
+
           </div>
-        )}
+
+        </div>
+
       </div>
+
+
+      {/* Accent */}
+
+      <div className="h-[2px] bg-gradient-to-r from-[#8ee276] via-[#47775f] to-transparent" />
+
     </header>
   );
 }

@@ -140,207 +140,311 @@ function Draw() {
     const isSubscriptionActive =
         subscription?.status === "active";
 
+    const winningNumbers =
+        Array.isArray(draw?.winning_numbers)
+            ? draw.winning_numbers
+            : [];
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#f7f3ea] text-[#101813] flex items-center justify-center">
-                <p className="text-[#5d625d]">
-                    Loading draw...
-                </p>
+            <div className="min-h-[70vh] bg-[#f3f1e8] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="mx-auto w-10 h-10 rounded-full border-2 border-[#cfd4c8] border-t-[#47775f] animate-spin" />
+
+                    <p className="mt-4 text-sm text-[#687169]">
+                        Loading your draw...
+                    </p>
+                </div>
             </div>
         );
     }
 
     return (
-    <div className="min-h-screen bg-[#f3f1e8] text-[#101813]">
+        <div className="min-h-screen bg-[#f3f1e8] text-[#101813]">
 
-   
+            <main className="max-w-7xl mx-auto px-5 sm:px-7 lg:px-10 py-8 lg:py-12">
 
-        <main>
+                {/* =====================================================
+                    HERO
+                ====================================================== */}
 
-            {/* Hero */}
-            <section className="max-w-7xl mx-auto px-6 lg:px-10 py-16 md:py-24 border-b border-[#cfd4c8]">
+                <section className="relative overflow-hidden rounded-[2rem] bg-[#0d2117] text-white">
 
-                <div className="grid lg:grid-cols-[1fr_300px] gap-12 lg:gap-20 items-end">
+                    <div className="absolute -top-32 -right-20 w-96 h-96 rounded-full bg-[#8ee276]/10 blur-3xl" />
 
-                    <div className="max-w-4xl">
+                    <div className="absolute -bottom-40 left-1/3 w-96 h-96 rounded-full bg-[#47775f]/20 blur-3xl" />
 
-                        <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#47775f]">
-                            § 01 · Monthly draw
-                        </p>
+                    <div className="relative px-6 sm:px-8 lg:px-12 py-10 sm:py-12 lg:py-14">
 
-                        <h1 className="mt-6 text-5xl md:text-7xl font-semibold tracking-[-0.05em] leading-[0.92]">
-                            Your game.
-                            <span className="block text-[#47775f]">
-                                Your chance.
-                            </span>
-                        </h1>
+                        <div className="grid lg:grid-cols-12 gap-10 items-end">
 
-                        <p className="mt-8 text-[#687169] text-base md:text-lg leading-7 max-w-2xl">
-                            Your latest five Stableford scores form your
-                            draw numbers. Check the latest published result
-                            and see how your entry performed.
-                        </p>
+                            <div className="lg:col-span-8">
 
-                    </div>
+                                <div className="flex items-center gap-2 mb-5">
+                                    <span className="w-7 h-[2px] bg-[#8ee276]" />
 
-                    <div className="border-l border-[#cfd4c8] pl-6">
+                                    <span className="text-[9px] uppercase tracking-[0.25em] text-[#8ee276] font-semibold">
+                                        Monthly draw
+                                    </span>
+                                </div>
 
-                        <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
-                            Draw format
-                        </p>
+                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.05em] leading-[0.98]">
+                                    Your game.
+                                    <br />
+                                    <span className="text-[#8ee276]">
+                                        Your chance.
+                                    </span>
+                                </h1>
 
-                        <p className="mt-3 text-5xl font-semibold tracking-[-0.04em] text-[#47775f]">
-                            5
-                        </p>
-
-                        <p className="mt-3 text-sm leading-6 text-[#687169]">
-                            Five numbers are drawn from the
-                            1–45 Stableford range each month.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            {/* Subscription warning */}
-            {!isSubscriptionActive && (
-                <section className="border-b border-[#cfd4c8] bg-[#ebe6d7]">
-
-                    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-7">
-
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-
-                            <div>
-
-                                <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#9a6b2f]">
-                                    Participation required
+                                <p className="mt-6 max-w-2xl text-sm sm:text-base text-white/55 leading-relaxed">
+                                    Your latest five Stableford scores
+                                    form your draw numbers. Check the
+                                    latest published result and see how
+                                    your entry performed.
                                 </p>
-
-                                <h2 className="mt-2 text-xl font-semibold">
-                                    Active subscription required
-                                </h2>
-
-                                <p className="mt-2 text-sm leading-6 text-[#687169] max-w-xl">
-                                    You need an active subscription to
-                                    participate in the monthly draw.
-                                </p>
-
-                                {subscription?.status && (
-                                    <p className="text-xs text-[#8a918b] mt-2">
-                                        Current status:{" "}
-                                        <span className="capitalize">
-                                            {subscription.status}
-                                        </span>
-                                    </p>
-                                )}
 
                             </div>
 
-                            <button
-                                onClick={() =>
-                                    navigate("/dashboard/subscription")
-                                }
-                                className="shrink-0 px-6 py-3 bg-[#47775f] text-white text-sm font-semibold hover:bg-[#38644f] transition"
-                            >
-                                View subscription →
-                            </button>
+                            <div className="lg:col-span-4">
+
+                                <div className="w-full sm:w-[230px] lg:ml-auto rounded-2xl bg-white/[0.07] border border-white/10 p-5 backdrop-blur-sm">
+
+                                    <div className="flex items-center justify-between">
+
+                                        <p className="text-[9px] uppercase tracking-[0.2em] text-white/40">
+                                            Draw format
+                                        </p>
+
+                                        <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
+
+                                    </div>
+
+                                    <p className="mt-4 text-5xl font-bold">
+                                        5
+                                    </p>
+
+                                    <p className="mt-2 text-xs text-white/35 leading-relaxed">
+                                        Numbers from the 1–45
+                                        Stableford range.
+                                    </p>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
                     </div>
 
                 </section>
-            )}
 
-            <section className="max-w-7xl mx-auto px-6 lg:px-10 py-14 md:py-20">
 
-                {!draw ? (
+                {/* =====================================================
+                    SUBSCRIPTION WARNING
+                ====================================================== */}
 
-                    /* No published draw */
-                    <div className="border border-[#cfd4c8] bg-[#f8f7f1]">
+                {!isSubscriptionActive && (
+                    <section className="mt-6">
 
-                        <div className="grid md:grid-cols-[180px_1fr]">
+                        <div className="rounded-[1.5rem] bg-[#ebe6d7] border border-[#ddd4bf] p-6 sm:p-7">
 
-                            <div className="border-b md:border-b-0 md:border-r border-[#cfd4c8] p-7">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-                                <p className="text-xs uppercase tracking-[0.18em] text-[#8a918b]">
-                                    Status
-                                </p>
+                                <div className="flex items-start gap-4">
 
-                                <p className="mt-3 text-2xl font-semibold text-[#47775f]">
-                                    Pending
-                                </p>
+                                    <div className="w-11 h-11 shrink-0 rounded-xl bg-[#f3e8cd] text-[#9a6b2f] flex items-center justify-center font-bold">
+                                        !
+                                    </div>
 
-                            </div>
+                                    <div>
 
-                            <div className="p-8 md:p-10">
+                                        <p className="text-[9px] uppercase tracking-[0.2em] text-[#9a6b2f] font-semibold">
+                                            Participation required
+                                        </p>
 
-                                <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#47775f]">
-                                    § 02 · Latest result
-                                </p>
+                                        <h2 className="mt-2 text-xl sm:text-2xl font-bold tracking-[-0.03em]">
+                                            Active subscription required
+                                        </h2>
 
-                                <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-[-0.03em]">
-                                    No published draw yet.
-                                </h2>
+                                        <p className="mt-2 text-sm leading-6 text-[#687169] max-w-xl">
+                                            Activate your membership to
+                                            participate in the monthly
+                                            Digital Heroes draw.
+                                        </p>
 
-                                <p className="mt-4 text-[#687169] leading-7 max-w-xl">
-                                    The latest monthly draw will appear
-                                    here once it has been published.
-                                </p>
+                                        {subscription?.status && (
+                                            <p className="mt-2 text-xs text-[#8a918b]">
+                                                Current status:{" "}
+                                                <span className="capitalize font-semibold">
+                                                    {subscription.status}
+                                                </span>
+                                            </p>
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+                                <button
+                                    onClick={() =>
+                                        navigate(
+                                            "/dashboard/subscription"
+                                        )
+                                    }
+                                    className="shrink-0 group px-6 py-3.5 rounded-xl bg-[#47775f] text-white text-sm font-semibold hover:bg-[#38644f] hover:-translate-y-0.5 transition-all"
+                                >
+                                    View subscription
+                                    <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                                        →
+                                    </span>
+                                </button>
 
                             </div>
 
                         </div>
 
-                    </div>
+                    </section>
+                )}
+
+
+                {/* =====================================================
+                    NO DRAW
+                ====================================================== */}
+
+                {!draw ? (
+
+                    <section className="mt-10">
+
+                        <div className="rounded-[1.75rem] bg-white border border-[#d9ddd4] overflow-hidden">
+
+                            <div className="grid lg:grid-cols-[220px_1fr]">
+
+                                <div className="bg-[#dfe7dc] p-7 sm:p-8">
+
+                                    <p className="text-[9px] uppercase tracking-[0.2em] text-[#687169]">
+                                        Draw status
+                                    </p>
+
+                                    <div className="mt-5 flex items-center gap-3">
+
+                                        <span className="w-3 h-3 rounded-full bg-[#9a6b2f]" />
+
+                                        <p className="text-2xl font-bold text-[#103523]">
+                                            Pending
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div className="p-7 sm:p-9 lg:p-10">
+
+                                    <div className="flex items-center gap-2">
+
+                                        <span className="w-6 h-[2px] bg-[#47775f]" />
+
+                                        <p className="text-[9px] uppercase tracking-[0.23em] text-[#47775f] font-semibold">
+                                            Latest result
+                                        </p>
+
+                                    </div>
+
+                                    <h2 className="mt-4 text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
+                                        No published draw yet.
+                                    </h2>
+
+                                    <p className="mt-3 text-sm leading-6 text-[#687169] max-w-xl">
+                                        The latest monthly draw will
+                                        appear here once it has been
+                                        published.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
 
                 ) : (
 
                     <>
 
-                        {/* Draw information */}
-                        <section>
+                        {/* =================================================
+                            LATEST DRAW
+                        ================================================== */}
 
-                            <div className="mb-8">
+                        <section className="mt-10">
 
-                                <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#47775f]">
-                                    § 02 · Latest result
-                                </p>
+                            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-6">
 
-                                <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-[-0.03em]">
-                                    {formatDrawMonth(
-                                        draw.draw_month,
-                                        draw.draw_year
-                                    )}
-                                </h2>
+                                <div>
+
+                                    <div className="flex items-center gap-2">
+
+                                        <span className="w-6 h-[2px] bg-[#47775f]" />
+
+                                        <p className="text-[9px] uppercase tracking-[0.23em] text-[#47775f] font-semibold">
+                                            Latest result
+                                        </p>
+
+                                    </div>
+
+                                    <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
+                                        {formatDrawMonth(
+                                            draw.draw_month,
+                                            draw.draw_year
+                                        )}
+                                    </h2>
+
+                                </div>
+
+                                <div className="flex items-center gap-2">
+
+                                    <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
+
+                                    <span className="text-[9px] uppercase tracking-[0.18em] text-[#47775f] font-semibold">
+                                        {draw.status}
+                                    </span>
+
+                                </div>
 
                             </div>
 
-                            <div className="grid md:grid-cols-[1fr_220px] gap-px bg-[#cfd4c8] border border-[#cfd4c8]">
 
-                                <div className="bg-[#f8f7f1] p-7 md:p-9">
+                            <div className="grid lg:grid-cols-12 gap-5">
 
-                                    <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
-                                        Monthly Digital Heroes Draw
+                                <div className="lg:col-span-8 rounded-[1.75rem] bg-white border border-[#d9ddd4] p-7 sm:p-9">
+
+                                    <p className="text-[9px] uppercase tracking-[0.2em] text-[#8a918b]">
+                                        Digital Heroes monthly draw
                                     </p>
 
-                                    <p className="mt-5 text-sm text-[#687169] leading-6 max-w-xl">
-                                        Official winning numbers for the
-                                        latest published monthly draw.
+                                    <h3 className="mt-4 text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
+                                        Official winning numbers
+                                    </h3>
+
+                                    <p className="mt-3 text-sm text-[#687169] leading-6 max-w-xl">
+                                        These are the official numbers
+                                        from the latest published
+                                        monthly draw.
                                     </p>
 
                                 </div>
 
-                                <div className="bg-[#dfe5da] p-7 md:p-9 flex flex-col justify-between">
+                                <div className="lg:col-span-4 rounded-[1.75rem] bg-[#dfe7dc] border border-[#cbd6c9] p-7 sm:p-9">
 
-                                    <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
-                                        Draw status
+                                    <p className="text-[9px] uppercase tracking-[0.2em] text-[#687169]">
+                                        Draw type
                                     </p>
 
-                                    <p className="mt-8 text-xl font-semibold capitalize text-[#47775f]">
-                                        {draw.status}
+                                    <p className="mt-6 text-2xl font-bold capitalize text-[#103523]">
+                                        {draw.draw_type || "Monthly"}
+                                    </p>
+
+                                    <p className="mt-2 text-sm text-[#687169]">
+                                        Published result
                                     </p>
 
                                 </div>
@@ -349,36 +453,70 @@ function Draw() {
 
                         </section>
 
-                        {/* Winning numbers */}
+
+                        {/* =================================================
+                            WINNING NUMBERS
+                        ================================================== */}
+
                         <section className="mt-12">
 
-                            <div className="mb-7">
+                            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
 
-                                <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#47775f]">
-                                    § 03 · Official result
+                                <div>
+
+                                    <div className="flex items-center gap-2">
+
+                                        <span className="w-6 h-[2px] bg-[#47775f]" />
+
+                                        <p className="text-[9px] uppercase tracking-[0.23em] text-[#47775f] font-semibold">
+                                            Official result
+                                        </p>
+
+                                    </div>
+
+                                    <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
+                                        Winning numbers
+                                    </h2>
+
+                                </div>
+
+                                <p className="text-xs text-[#8a918b]">
+                                    5 numbers · 1–45
                                 </p>
-
-                                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">
-                                    Winning numbers
-                                </h2>
 
                             </div>
 
-                            <div className="grid grid-cols-5 gap-px bg-[#cfd4c8] border border-[#cfd4c8] max-w-3xl">
 
-                                {(draw.winning_numbers || []).map(
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+
+                                {winningNumbers.map(
                                     (number, index) => (
                                         <div
                                             key={`${number}-${index}`}
-                                            className="bg-[#47775f] min-h-[100px] md:min-h-[130px] flex flex-col items-center justify-center text-white"
+                                            className="group relative overflow-hidden rounded-[1.5rem] bg-[#103523] text-white min-h-[150px] sm:min-h-[175px] flex flex-col justify-between p-5 sm:p-6 hover:-translate-y-1 transition-transform"
                                         >
-                                            <span className="text-[10px] uppercase tracking-[0.16em] opacity-70">
-                                                {String(index + 1).padStart(2, "0")}
-                                            </span>
 
-                                            <span className="mt-2 text-4xl md:text-5xl font-semibold tracking-[-0.04em]">
+                                            <div className="absolute -right-10 -top-10 w-28 h-28 rounded-full bg-[#8ee276]/10 blur-2xl" />
+
+                                            <div className="relative flex items-center justify-between">
+
+                                                <span className="text-[9px] uppercase tracking-[0.2em] text-white/35">
+                                                    Number
+                                                </span>
+
+                                                <span className="text-[9px] text-[#8ee276] font-bold">
+                                                    {String(index + 1).padStart(
+                                                        2,
+                                                        "0"
+                                                    )}
+                                                </span>
+
+                                            </div>
+
+                                            <span className="relative text-5xl sm:text-6xl font-bold tracking-[-0.07em] text-[#8ee276]">
                                                 {number}
                                             </span>
+
                                         </div>
                                     )
                                 )}
@@ -387,33 +525,67 @@ function Draw() {
 
                         </section>
 
-                        {/* User entry */}
-                        <section className="mt-16">
 
-                            <div className="mb-8">
+                        {/* =================================================
+                            USER ENTRY
+                        ================================================== */}
 
-                                <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#47775f]">
-                                    § 04 · Your entry
-                                </p>
+                        <section className="mt-14">
 
-                                <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">
-                                    How did your numbers perform?
-                                </h2>
+                            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-7">
+
+                                <div>
+
+                                    <div className="flex items-center gap-2">
+
+                                        <span className="w-6 h-[2px] bg-[#47775f]" />
+
+                                        <p className="text-[9px] uppercase tracking-[0.23em] text-[#47775f] font-semibold">
+                                            Your entry
+                                        </p>
+
+                                    </div>
+
+                                    <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
+                                        How did your numbers perform?
+                                    </h2>
+
+                                </div>
+
+                                {isSubscriptionActive && (
+                                    <span className="inline-flex items-center gap-2 text-[9px] uppercase tracking-[0.18em] text-[#47775f] font-semibold">
+
+                                        <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
+
+                                        Active member
+
+                                    </span>
+                                )}
 
                             </div>
+
 
                             {!isSubscriptionActive ? (
 
                                 /* Not subscribed */
-                                <div className="border border-[#cfd4c8] bg-[#f8f7f1]">
 
-                                    <div className="p-8 md:p-10">
+                                <div className="rounded-[1.75rem] bg-white border border-[#d9ddd4] p-7 sm:p-9">
 
-                                        <p className="text-[#687169] leading-7 max-w-xl">
-                                            Your draw entry is unavailable
-                                            because your subscription is
-                                            not active.
-                                        </p>
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-7">
+
+                                        <div>
+
+                                            <h3 className="text-xl sm:text-2xl font-bold tracking-[-0.03em]">
+                                                Your entry is unavailable.
+                                            </h3>
+
+                                            <p className="mt-3 text-sm leading-6 text-[#687169] max-w-xl">
+                                                Activate your membership
+                                                to participate in the
+                                                monthly draw.
+                                            </p>
+
+                                        </div>
 
                                         <button
                                             onClick={() =>
@@ -421,9 +593,12 @@ function Draw() {
                                                     "/dashboard/subscription"
                                                 )
                                             }
-                                            className="mt-7 px-6 py-3 bg-[#47775f] text-white text-sm font-semibold hover:bg-[#38644f] transition"
+                                            className="group shrink-0 px-6 py-3.5 rounded-xl bg-[#47775f] text-white text-sm font-semibold hover:bg-[#38644f] hover:-translate-y-0.5 transition-all"
                                         >
-                                            Activate subscription →
+                                            Activate membership
+                                            <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                                                →
+                                            </span>
                                         </button>
 
                                     </div>
@@ -433,25 +608,26 @@ function Draw() {
                             ) : entries.length === 0 ? (
 
                                 /* Active but no entry */
-                                <div className="border border-[#cfd4c8] bg-[#f8f7f1]">
 
-                                    <div className="grid md:grid-cols-[180px_1fr]">
+                                <div className="rounded-[1.75rem] bg-white border border-[#d9ddd4] overflow-hidden">
 
-                                        <div className="border-b md:border-b-0 md:border-r border-[#cfd4c8] p-7">
+                                    <div className="grid lg:grid-cols-[200px_1fr]">
 
-                                            <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
+                                        <div className="bg-[#ebe6d7] p-7 sm:p-8">
+
+                                            <p className="text-[9px] uppercase tracking-[0.2em] text-[#8a918b]">
                                                 Entry
                                             </p>
 
-                                            <p className="mt-3 text-xl font-semibold text-[#9a6b2f]">
+                                            <p className="mt-4 text-xl font-bold text-[#9a6b2f]">
                                                 Missing
                                             </p>
 
                                         </div>
 
-                                        <div className="p-8 md:p-10">
+                                        <div className="p-7 sm:p-9">
 
-                                            <h3 className="text-2xl font-semibold">
+                                            <h3 className="text-xl sm:text-2xl font-bold tracking-[-0.03em]">
                                                 No draw entry was generated.
                                             </h3>
 
@@ -467,9 +643,12 @@ function Draw() {
                                                         "/dashboard/scores"
                                                     )
                                                 }
-                                                className="mt-7 px-6 py-3 bg-[#47775f] text-white text-sm font-semibold hover:bg-[#38644f] transition"
+                                                className="group mt-6 px-6 py-3.5 rounded-xl bg-[#103523] text-white text-sm font-semibold hover:bg-[#47775f] transition-all"
                                             >
-                                                Manage scores →
+                                                Manage scores
+                                                <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                                                    →
+                                                </span>
                                             </button>
 
                                         </div>
@@ -481,118 +660,205 @@ function Draw() {
                             ) : (
 
                                 /* Active + entry exists */
-                                <div className="space-y-6">
 
-                                    {entries.map((entry) => (
+                                <div className="space-y-5">
 
-                                        <div
-                                            key={entry.id}
-                                            className="border border-[#cfd4c8] bg-[#f8f7f1]"
-                                        >
+                                    {entries.map((entry) => {
 
-                                            <div className="grid lg:grid-cols-[1fr_220px]">
+                                        const entryNumbers =
+                                            Array.isArray(entry.numbers)
+                                                ? entry.numbers
+                                                : [];
 
-                                                {/* Numbers */}
-                                                <div className="p-7 md:p-9">
+                                        const matchCount =
+                                            entry.match_count ?? 0;
 
-                                                    <div className="flex items-center justify-between gap-5">
+                                        return (
+                                            <div
+                                                key={entry.id}
+                                                className="rounded-[1.75rem] bg-white border border-[#d9ddd4] overflow-hidden"
+                                            >
+
+                                                <div className="grid lg:grid-cols-12">
+
+                                                    {/* Numbers */}
+
+                                                    <div className="lg:col-span-8 p-7 sm:p-9">
+
+                                                        <div className="flex items-start justify-between gap-5">
+
+                                                            <div>
+
+                                                                <p className="text-[9px] uppercase tracking-[0.2em] text-[#8a918b]">
+                                                                    Your numbers
+                                                                </p>
+
+                                                                <h3 className="mt-2 text-xl sm:text-2xl font-bold tracking-[-0.03em]">
+                                                                    Your draw entry
+                                                                </h3>
+
+                                                            </div>
+
+                                                            <div className="hidden sm:flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-[#47775f] font-semibold">
+
+                                                                <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
+
+                                                                Entry recorded
+
+                                                            </div>
+
+                                                        </div>
+
+
+                                                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-7">
+
+                                                            {entryNumbers.map(
+                                                                (
+                                                                    number,
+                                                                    index
+                                                                ) => {
+
+                                                                    const isMatch =
+                                                                        winningNumbers.includes(
+                                                                            Number(
+                                                                                number
+                                                                            )
+                                                                        );
+
+                                                                    return (
+                                                                        <div
+                                                                            key={`${number}-${index}`}
+                                                                            className={`
+                                                                                relative min-h-[115px]
+                                                                                rounded-[1.25rem]
+                                                                                flex flex-col
+                                                                                justify-between
+                                                                                p-4
+                                                                                transition-all
+                                                                                ${
+                                                                                    isMatch
+                                                                                        ? "bg-[#103523] text-white"
+                                                                                        : "bg-[#eef1eb] text-[#101813]"
+                                                                                }
+                                                                            `}
+                                                                        >
+
+                                                                            <div className="flex items-center justify-between">
+
+                                                                                <span
+                                                                                    className={`
+                                                                                        text-[9px] uppercase tracking-[0.16em]
+                                                                                        ${
+                                                                                            isMatch
+                                                                                                ? "text-white/35"
+                                                                                                : "text-[#8a918b]"
+                                                                                        }
+                                                                                    `}
+                                                                                >
+                                                                                    {String(
+                                                                                        index +
+                                                                                            1
+                                                                                    ).padStart(
+                                                                                        2,
+                                                                                        "0"
+                                                                                    )}
+                                                                                </span>
+
+                                                                                {isMatch && (
+                                                                                    <span className="w-5 h-5 rounded-full bg-[#8ee276] text-[#103523] flex items-center justify-center text-[9px] font-bold">
+                                                                                        ✓
+                                                                                    </span>
+                                                                                )}
+
+                                                                            </div>
+
+                                                                            <span
+                                                                                className={`
+                                                                                    text-3xl font-bold tracking-[-0.05em]
+                                                                                    ${
+                                                                                        isMatch
+                                                                                            ? "text-[#8ee276]"
+                                                                                            : "text-[#103523]"
+                                                                                    }
+                                                                                `}
+                                                                            >
+                                                                                {number}
+                                                                            </span>
+
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                            )}
+
+                                                        </div>
+
+                                                        <div className="mt-6 flex items-center gap-2 text-xs text-[#8a918b]">
+
+                                                            <span className="w-2 h-2 rounded-full bg-[#47775f]" />
+
+                                                            Matching numbers are highlighted in green.
+
+                                                        </div>
+
+                                                    </div>
+
+
+                                                    {/* Match count */}
+
+                                                    <div className="lg:col-span-4 bg-[#dfe7dc] border-t lg:border-t-0 lg:border-l border-[#cbd6c9] p-7 sm:p-9 flex flex-col justify-between">
 
                                                         <div>
 
-                                                            <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
-                                                                Your numbers
+                                                            <p className="text-[9px] uppercase tracking-[0.2em] text-[#687169]">
+                                                                Your result
+                                                            </p>
+
+                                                            <p className="mt-5 text-6xl sm:text-7xl font-bold tracking-[-0.07em] text-[#103523]">
+                                                                {matchCount}
+                                                                <span className="text-2xl sm:text-3xl text-[#8a918b] tracking-[-0.03em]">
+                                                                    /5
+                                                                </span>
                                                             </p>
 
                                                             <p className="mt-2 text-sm text-[#687169]">
-                                                                Matching numbers are highlighted.
+                                                                matching numbers
                                                             </p>
 
                                                         </div>
 
-                                                        <span className="hidden sm:block text-xs uppercase tracking-[0.14em] text-[#47775f]">
-                                                            Entry
-                                                        </span>
+
+                                                        <div className="mt-8">
+
+                                                            <div className="h-2 rounded-full bg-[#c6d2c3] overflow-hidden">
+
+                                                                <div
+                                                                    className="h-full rounded-full bg-[#47775f] transition-all duration-500"
+                                                                    style={{
+                                                                        width: `${Math.min(
+                                                                            matchCount *
+                                                                                20,
+                                                                            100
+                                                                        )}%`,
+                                                                    }}
+                                                                />
+
+                                                            </div>
+
+                                                            <p className="mt-4 text-xs leading-5 text-[#687169]">
+                                                                Each matching number
+                                                                is highlighted in
+                                                                your entry.
+                                                            </p>
+
+                                                        </div>
 
                                                     </div>
-
-                                                    <div className="grid grid-cols-5 gap-px bg-[#cfd4c8] border border-[#cfd4c8] mt-7 max-w-xl">
-
-                                                        {(
-                                                            entry.numbers || []
-                                                        ).map(
-                                                            (
-                                                                number,
-                                                                index
-                                                            ) => {
-
-                                                                const isMatch =
-                                                                    (
-                                                                        draw.winning_numbers ||
-                                                                        []
-                                                                    ).includes(
-                                                                        Number(
-                                                                            number
-                                                                        )
-                                                                    );
-
-                                                                return (
-                                                                    <div
-                                                                        key={`${number}-${index}`}
-                                                                        className={`min-h-[82px] flex flex-col items-center justify-center ${
-                                                                            isMatch
-                                                                                ? "bg-[#47775f] text-white"
-                                                                                : "bg-[#e7ebe3] text-[#101813]"
-                                                                        }`}
-                                                                    >
-
-                                                                        <span className="text-[10px] uppercase tracking-[0.14em] opacity-60">
-                                                                            {String(index + 1).padStart(2, "0")}
-                                                                        </span>
-
-                                                                        <span className="mt-1 text-2xl font-semibold">
-                                                                            {number}
-                                                                        </span>
-
-                                                                    </div>
-                                                                );
-                                                            }
-                                                        )}
-
-                                                    </div>
-
-                                                </div>
-
-                                                {/* Match count */}
-                                                <div className="border-t lg:border-t-0 lg:border-l border-[#cfd4c8] bg-[#dfe5da] p-7 md:p-9 flex flex-col justify-between">
-
-                                                    <div>
-
-                                                        <p className="text-xs uppercase tracking-[0.16em] text-[#8a918b]">
-                                                            Matches
-                                                        </p>
-
-                                                        <p className="mt-4 text-5xl md:text-6xl font-semibold tracking-[-0.05em] text-[#47775f]">
-                                                            {entry.match_count ?? 0}
-                                                            <span className="text-2xl text-[#8a918b]">
-                                                                /5
-                                                            </span>
-                                                        </p>
-
-                                                    </div>
-
-                                                    <p className="mt-8 text-sm leading-6 text-[#687169]">
-                                                        Your matching numbers
-                                                        are highlighted in
-                                                        green.
-                                                    </p>
 
                                                 </div>
 
                                             </div>
-
-                                        </div>
-
-                                    ))}
+                                        );
+                                    })}
 
                                 </div>
 
@@ -600,16 +866,107 @@ function Draw() {
 
                         </section>
 
+
+                        {/* =================================================
+                            HOW IT WORKS
+                        ================================================== */}
+
+                        <section className="mt-14 mb-6">
+
+                            <div className="rounded-[1.75rem] bg-[#0d2117] text-white overflow-hidden">
+
+                                <div className="grid lg:grid-cols-12">
+
+                                    <div className="lg:col-span-5 p-7 sm:p-9 lg:p-10">
+
+                                        <div className="flex items-center gap-2">
+
+                                            <span className="w-6 h-[2px] bg-[#8ee276]" />
+
+                                            <p className="text-[9px] uppercase tracking-[0.22em] text-[#8ee276] font-semibold">
+                                                The draw
+                                            </p>
+
+                                        </div>
+
+                                        <h2 className="mt-4 text-2xl sm:text-3xl font-bold tracking-[-0.04em]">
+                                            Performance becomes
+                                            opportunity.
+                                        </h2>
+
+                                        <p className="mt-4 text-sm text-white/45 leading-6">
+                                            Your golf performance connects
+                                            directly to your monthly draw
+                                            participation.
+                                        </p>
+
+                                    </div>
+
+
+                                    <div className="lg:col-span-7 grid sm:grid-cols-3 border-t lg:border-t-0 lg:border-l border-white/10">
+
+                                        <DrawStep
+                                            number="01"
+                                            title="Play"
+                                            text="Record your Stableford scores."
+                                        />
+
+                                        <DrawStep
+                                            number="02"
+                                            title="Enter"
+                                            text="Your latest five scores form your numbers."
+                                        />
+
+                                        <DrawStep
+                                            number="03"
+                                            title="Match"
+                                            text="Compare your numbers with the published draw."
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
                     </>
                 )}
 
-            </section>
+            </main>
 
-        </main>
-
- 
-
-    </div>
-)
+        </div>
+    );
 }
-export default Draw
+
+
+/* =========================================================
+   DRAW STEP
+========================================================= */
+
+function DrawStep({
+    number,
+    title,
+    text,
+}) {
+    return (
+        <div className="p-6 sm:p-7 border-b sm:border-b-0 sm:border-r last:border-0 border-white/10">
+
+            <span className="text-[9px] uppercase tracking-[0.18em] text-[#8ee276] font-semibold">
+                {number}
+            </span>
+
+            <h3 className="mt-7 text-lg font-bold">
+                {title}
+            </h3>
+
+            <p className="mt-3 text-xs leading-5 text-white/40">
+                {text}
+            </p>
+
+        </div>
+    );
+}
+
+export default Draw;
