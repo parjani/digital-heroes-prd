@@ -48,48 +48,46 @@ function Charity() {
     setLoading(false);
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-
-    setError("");
-    setMessage("");
-
+  const handleSave = async () => {
     if (!selectedCharity) {
-      setError("Please select a charity.");
-      return;
+        alert("Please select a charity.");
+        return;
     }
 
-    if (percentage < 10 || percentage > 100) {
-      setError("Charity contribution must be between 10% and 100%.");
-      return;
+    if (Number(percentage) < 10 || Number(percentage) > 100) {
+        alert("Percentage must be between 10% and 100%.");
+        return;
     }
 
-    setSaving(true);
+    try {
+        setSaving(true);
 
-    const { error } = await supabase.rpc(
-      "update_my_charity_preferences",
-      {
-        p_charity_id: selectedCharity,
-        p_charity_percentage: Number(percentage),
-      }
-    );
+        const { error } = await supabase.rpc(
+            "update_my_charity_preferences",
+            {
+                p_charity_id: selectedCharity,
+                p_charity_percentage: Number(percentage),
+            }
+        );
 
-    if (error) {
-      console.error(error);
-      setError("Unable to save your charity preferences.");
-      setSaving(false);
-      return;
+        if (error) {
+            throw error;
+        }
+
+        alert("Charity preference saved successfully.");
+
+        navigate("/dashboard", {
+            state: {
+                refreshDashboard: true,
+            },
+        });
+    } catch (error) {
+        console.error("Save charity preference error:", error);
+        alert(error.message || "Unable to save charity preference.");
+    } finally {
+        setSaving(false);
     }
-
-    setSaving(false);
-
-    navigate("/dashboard", {
-      replace: true,
-      state: {
-        refreshDashboard: true,
-      },
-    });
-  };
+};
 
   const selectedCharityData = charities.find(
     (charity) => charity.id === selectedCharity
@@ -249,10 +247,9 @@ function Charity() {
                       transition-all
                       duration-300
                       hover:-translate-y-1
-                      ${
-                        isSelected
-                          ? "bg-[#103523] border-[#103523] text-white shadow-[0_18px_45px_rgba(13,33,23,0.14)]"
-                          : "bg-white border-[#d9ddd4] hover:border-[#b9c4b8] hover:shadow-[0_15px_40px_rgba(16,24,19,0.06)]"
+                      ${isSelected
+                        ? "bg-[#103523] border-[#103523] text-white shadow-[0_18px_45px_rgba(13,33,23,0.14)]"
+                        : "bg-white border-[#d9ddd4] hover:border-[#b9c4b8] hover:shadow-[0_15px_40px_rgba(16,24,19,0.06)]"
                       }
                     `}
                   >
@@ -264,10 +261,9 @@ function Charity() {
                         className={`
                           w-9 h-9 rounded-xl flex items-center justify-center
                           text-[10px] font-bold
-                          ${
-                            isSelected
-                              ? "bg-[#8ee276] text-[#103523]"
-                              : "bg-[#eef1eb] text-[#47775f]"
+                          ${isSelected
+                            ? "bg-[#8ee276] text-[#103523]"
+                            : "bg-[#eef1eb] text-[#47775f]"
                           }
                         `}
                       >
@@ -279,10 +275,9 @@ function Charity() {
                       <span
                         className={`
                           w-6 h-6 rounded-full border flex items-center justify-center transition-all
-                          ${
-                            isSelected
-                              ? "border-[#8ee276] bg-[#8ee276]"
-                              : "border-[#c9d0c6] bg-transparent group-hover:border-[#47775f]"
+                          ${isSelected
+                            ? "border-[#8ee276] bg-[#8ee276]"
+                            : "border-[#c9d0c6] bg-transparent group-hover:border-[#47775f]"
                           }
                         `}
                       >
@@ -302,10 +297,9 @@ function Charity() {
                       <h3
                         className={`
                           text-xl font-bold tracking-[-0.03em]
-                          ${
-                            isSelected
-                              ? "text-white"
-                              : "text-[#101813]"
+                          ${isSelected
+                            ? "text-white"
+                            : "text-[#101813]"
                           }
                         `}
                       >
@@ -315,10 +309,9 @@ function Charity() {
                       <p
                         className={`
                           mt-3 text-sm leading-6
-                          ${
-                            isSelected
-                              ? "text-white/50"
-                              : "text-[#687169]"
+                          ${isSelected
+                            ? "text-white/50"
+                            : "text-[#687169]"
                           }
                         `}
                       >
@@ -437,10 +430,9 @@ function Charity() {
                           className={`
                             px-4 py-2.5 rounded-full text-xs font-semibold
                             border transition-all
-                            ${
-                              Number(percentage) === value
-                                ? "bg-[#103523] border-[#103523] text-white"
-                                : "bg-[#f8f7f1] border-[#d4d9d1] text-[#687169] hover:border-[#47775f] hover:text-[#47775f]"
+                            ${Number(percentage) === value
+                              ? "bg-[#103523] border-[#103523] text-white"
+                              : "bg-[#f8f7f1] border-[#d4d9d1] text-[#687169] hover:border-[#47775f] hover:text-[#47775f]"
                             }
                           `}
                         >

@@ -324,54 +324,178 @@ export default function AdminWinners() {
     ============================================================= */
 
     async function markAsPaid(winner) {
-        if (
-            winner.verification_status !==
-            "approved"
-        ) {
-            alert(
-                "Winner must be approved before payment."
+    if (winner.verification_status !== "approved") {
+        alert("Winner must be approved before payment.");
+        return;
+    }
+
+    if (winner.payment_status === "paid") {
+        return;
+    }
+
+    const confirmed = window.confirm(
+        "Mark this winner as paid and record the charity contribution?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    setProcessing(winner.id);
+
+    try {
+        /*
+         * 1. Get user's charity preference
+         */
+        const { data: profile, error: profileError } =
+            await supabase
+                .from("profiles")
+                .select(
+                    "id, charity_id, charity_percentage"
+                )
+                .eq("id", winner.user_id)
+                .single();
+
+        if (profileError) {
+            throw profileError;
+        }
+
+        if (!profile?.charity_id) {
+            throw new Error(
+                "This user has not selected a charity."
             );
-            return;
         }
 
-        if (winner.payment_status === "paid") {
-            return;
+        const percentage =
+            Number(profile.charity_percentage) || 0;
+
+        if (percentage < 10 || percentage > 100) {
+            throw new Error(
+                "Invalid charity percentage for this user."
+            );
         }
 
-        const confirmed = window.confirm(
-            "Mark this winner as paid?"
+        /*
+         * 2. Find user's active subscription
+         *
+         * charity_contributions.subscription_id
+         * is optional, but we will save it when available.
+         */
+        const { data: subscription, error: subscriptionError } =
+            await supabase
+                .from("subscriptions")
+                .select("id")
+                .eq("user_id", winner.user_id)
+                .eq("status", "active")
+                .order("created_at", {
+                    ascending: false,
+                })
+                .limit(1)
+                .maybeSingle();
+
+        if (subscriptionError) {
+            throw subscriptionError;
+        }
+
+        /*
+         * 3. Calculate charity contribution
+         *
+         * Example:
+         * Prize = ₹3500
+         * Percentage = 10%
+         * Contribution = ₹350
+         */
+        const prizeAmount =
+            Number(winner.prize_amount) || 0;
+
+        const contributionAmount = Math.round(
+            (prizeAmount * percentage) / 100
         );
 
-        if (!confirmed) {
-            return;
+        /*
+         * 4. Check whether contribution already exists
+         *
+         * Your charity_contributions table does not have
+         * winner_id, so we use user + amount + charity + subscription.
+         *
+         * For stronger duplicate protection, we should eventually
+         * add a winner_id column. For now this prevents the common
+         * duplicate-click case.
+         */
+        const { data: existingContribution, error: existingError } =
+            await supabase
+                .from("charity_contributions")
+                .select("id")
+                .eq("user_id", winner.user_id)
+                .eq("charity_id", profile.charity_id)
+                .eq("percentage", percentage)
+                .eq("amount", contributionAmount)
+                .limit(1)
+                .maybeSingle();
+
+        if (existingError) {
+            throw existingError;
         }
 
-        setProcessing(winner.id);
+        /*
+         * 5. Insert charity contribution if it doesn't exist
+         */
+        if (!existingContribution) {
+            const { error: contributionError } =
+                await supabase
+                    .from("charity_contributions")
+                    .insert({
+                        user_id: winner.user_id,
+                        charity_id: profile.charity_id,
+                        subscription_id:
+                            subscription?.id || null,
+                        percentage,
+                        amount: contributionAmount,
+                    });
 
-        try {
-            const { error } = await supabase
+            if (contributionError) {
+                throw contributionError;
+            }
+        }
+
+        /*
+         * 6. Mark winner as paid
+         */
+        const { error: paymentError } =
+            await supabase
                 .from("winners")
                 .update({
                     payment_status: "paid",
                 })
                 .eq("id", winner.id);
 
-            if (error) {
-                throw error;
-            }
-
-            await fetchWinners();
-        } catch (error) {
-            console.error(
-                "Payment update error:",
-                error
-            );
-
-            alert(error.message);
-        } finally {
-            setProcessing(null);
+        if (paymentError) {
+            throw paymentError;
         }
+
+        alert(
+            `Payment marked as paid.\n\n` +
+            `Prize: ₹${prizeAmount.toLocaleString("en-IN")}\n` +
+            `Charity: ${percentage}%\n` +
+            `Contribution: ₹${contributionAmount.toLocaleString("en-IN")}`
+        );
+
+        await fetchWinners();
+
+    } catch (error) {
+        console.error(
+            "Payment / charity contribution error:",
+            error
+        );
+
+        alert(
+            error?.message ||
+            "Unable to process payment."
+        );
+    } finally {
+        setProcessing(null);
     }
+}
 
     const stats = useMemo(() => {
         const pending = winners.filter(
