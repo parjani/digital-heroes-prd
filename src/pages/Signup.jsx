@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
@@ -9,11 +9,48 @@ function Signup() {
     fullName: "",
     email: "",
     password: "",
+    charityId: "",
+    charityPercentage: 10,
   });
+
+  const [charities, setCharities] = useState([]);
+  const [charitiesLoading, setCharitiesLoading] = useState(true);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Fetch active charities
+  useEffect(() => {
+    async function fetchCharities() {
+      setCharitiesLoading(true);
+
+      const { data, error } = await supabase
+        .from("charities")
+        .select("id, name, description")
+        .eq("active", true)
+        .order("name");
+
+      if (error) {
+        console.error("Fetch charities error:", error);
+        setError("Unable to load charities. Please try again.");
+      } else {
+        setCharities(data || []);
+
+        // Automatically select first charity
+        if (data?.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            charityId: prev.charityId || data[0].id,
+          }));
+        }
+      }
+
+      setCharitiesLoading(false);
+    }
+
+    fetchCharities();
+  }, []);
 
   function handleChange(e) {
     setForm({
@@ -23,24 +60,40 @@ function Signup() {
   }
 
   async function handleSignup(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    setError("");
-    setSuccess("");
-    setLoading(true);
+  setError("");
+  setSuccess("");
+  setLoading(true);
 
-    if (!form.fullName || !form.email || !form.password) {
-      setError("Please fill all fields.");
-      setLoading(false);
-      return;
-    }
+  if (
+    !form.fullName ||
+    !form.email ||
+    !form.password ||
+    !form.charityId
+  ) {
+    setError("Please fill all fields and select a charity.");
+    setLoading(false);
+    return;
+  }
 
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      setLoading(false);
-      return;
-    }
+  if (form.password.length < 6) {
+    setError("Password must be at least 6 characters.");
+    setLoading(false);
+    return;
+  }
 
+  if (
+    Number(form.charityPercentage) < 10 ||
+    Number(form.charityPercentage) > 100
+  ) {
+    setError("Charity contribution must be between 10% and 100%.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    // 1. Create Supabase account
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
@@ -52,23 +105,46 @@ function Signup() {
     });
 
     if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
+      throw error;
     }
 
-    if (data.user) {
-      setSuccess(
-        "Account created successfully."
+    if (!data.user) {
+      throw new Error("Unable to create account.");
+    }
+
+    // 2. Save charity using the SAME RPC
+    const { error: charityError } = await supabase.rpc(
+      "update_my_charity_preferences",
+      {
+        p_charity_id: form.charityId,
+        p_charity_percentage: Number(form.charityPercentage),
+      }
+    );
+
+    if (charityError) {
+      console.error("Charity preference error:", charityError);
+
+      throw new Error(
+        "Account was created, but charity preference could not be saved."
       );
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2500);
     }
 
+    // 3. Success
+    setSuccess(
+      "Account created and charity preference saved successfully."
+    );
+
+    setTimeout(() => {
+      navigate("/login");
+    }, 2500);
+
+  } catch (error) {
+    console.error("Signup error:", error);
+    setError(error.message || "Unable to create account.");
+  } finally {
     setLoading(false);
   }
+}
 
   return (
     <div className="min-h-screen bg-[#f3f1e8] flex items-center justify-center px-5 py-8 md:py-12">
@@ -77,22 +153,17 @@ function Signup() {
 
         <div className="grid lg:grid-cols-2">
 
-
           {/* ===================================================== */}
           {/* LEFT — BRAND / MESSAGE */}
           {/* ===================================================== */}
 
-          <div className="relative hidden lg:flex min-h-[760px] overflow-hidden bg-[#0d2117] text-white p-12 xl:p-16 flex-col justify-between">
+          <div className="relative hidden lg:flex min-h-[850px] overflow-hidden bg-[#0d2117] text-white p-12 xl:p-16 flex-col justify-between">
 
-            {/* Decorative glow */}
             <div className="absolute -top-40 -right-32 w-[500px] h-[500px] rounded-full bg-[#8ee276]/10 blur-3xl pointer-events-none" />
 
             <div className="absolute -bottom-40 -left-32 w-[480px] h-[480px] rounded-full bg-[#47775f]/20 blur-3xl pointer-events-none" />
 
-
-            {/* Decorative circle */}
             <div className="absolute right-[-100px] bottom-[100px] w-[300px] h-[300px] rounded-full border-[45px] border-white/[0.03] pointer-events-none" />
-
 
             {/* Brand */}
             <div className="relative z-10">
@@ -122,7 +193,6 @@ function Signup() {
 
             </div>
 
-
             {/* Main message */}
             <div className="relative z-10">
 
@@ -135,7 +205,6 @@ function Signup() {
                 </span>
 
               </div>
-
 
               <h2 className="text-5xl xl:text-6xl font-semibold tracking-[-0.06em] leading-[0.9]">
 
@@ -155,18 +224,14 @@ function Signup() {
 
               </h2>
 
-
               <p className="mt-8 max-w-md text-sm leading-7 text-white/50">
                 Create your Digital Heroes account and connect your golf
                 performance with charitable giving and the monthly draw.
               </p>
 
-
-              {/* Small stats */}
               <div className="mt-10 flex gap-8">
 
                 <div>
-
                   <p className="text-2xl font-semibold text-white">
                     5
                   </p>
@@ -174,15 +239,11 @@ function Signup() {
                   <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/35">
                     Latest scores
                   </p>
-
                 </div>
-
 
                 <div className="w-px bg-white/10" />
 
-
                 <div>
-
                   <p className="text-2xl font-semibold text-[#8ee276]">
                     10%+
                   </p>
@@ -190,15 +251,11 @@ function Signup() {
                   <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/35">
                     Charity contribution
                   </p>
-
                 </div>
-
 
                 <div className="w-px bg-white/10" />
 
-
                 <div>
-
                   <p className="text-2xl font-semibold text-white">
                     01
                   </p>
@@ -206,13 +263,11 @@ function Signup() {
                   <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/35">
                     Monthly draw
                   </p>
-
                 </div>
 
               </div>
 
             </div>
-
 
             {/* Bottom */}
             <div className="relative z-10 flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-white/35">
@@ -224,7 +279,6 @@ function Signup() {
             </div>
 
           </div>
-
 
           {/* ===================================================== */}
           {/* RIGHT — SIGNUP */}
@@ -260,7 +314,6 @@ function Signup() {
 
             </div>
 
-
             {/* Header */}
             <div className="mb-9">
 
@@ -278,7 +331,6 @@ function Signup() {
 
               </div>
 
-
               <h1 className="text-4xl sm:text-5xl font-semibold tracking-[-0.055em] leading-[0.95]">
 
                 Become a
@@ -289,14 +341,12 @@ function Signup() {
 
               </h1>
 
-
               <p className="mt-5 text-sm md:text-base leading-7 text-[#687169] max-w-md">
                 Start tracking your game, choose a cause and play with
                 purpose.
               </p>
 
             </div>
-
 
             {/* ================================================= */}
             {/* FORM */}
@@ -329,7 +379,6 @@ function Signup() {
 
               </div>
 
-
               {/* Email */}
               <div>
 
@@ -351,7 +400,6 @@ function Signup() {
                 />
 
               </div>
-
 
               {/* Password */}
               <div>
@@ -385,6 +433,157 @@ function Signup() {
 
               </div>
 
+              {/* ================================================= */}
+              {/* CHARITY */}
+              {/* ================================================= */}
+
+              <div className="pt-2">
+
+                <div className="mb-4">
+
+                  <label
+                    htmlFor="charityId"
+                    className="block mb-2 text-xs uppercase tracking-[0.12em] font-semibold text-[#303a34]"
+                  >
+                    Choose your charity
+                  </label>
+
+                  <p className="mb-3 text-xs leading-5 text-[#8a918b]">
+                    Select the cause you want your subscription contribution
+                    to support.
+                  </p>
+
+                  <select
+                    id="charityId"
+                    name="charityId"
+                    value={form.charityId}
+                    onChange={handleChange}
+                    disabled={charitiesLoading || charities.length === 0}
+                    className="w-full rounded-2xl border border-[#d0d6cd] bg-[#f3f1e8] px-4 py-3.5 text-sm text-[#101813] outline-none transition focus:border-[#47775f] focus:ring-4 focus:ring-[#47775f]/10 disabled:opacity-60"
+                  >
+
+                    {charitiesLoading ? (
+                      <option value="">
+                        Loading charities...
+                      </option>
+                    ) : charities.length === 0 ? (
+                      <option value="">
+                        No charities available
+                      </option>
+                    ) : (
+                      <>
+                        <option value="">
+                          Select a charity
+                        </option>
+
+                        {charities.map((charity) => (
+                          <option
+                            key={charity.id}
+                            value={charity.id}
+                          >
+                            {charity.name}
+                          </option>
+                        ))}
+                      </>
+                    )}
+
+                  </select>
+
+                </div>
+
+                {/* Charity percentage */}
+                <div>
+
+                  <div className="flex items-center justify-between mb-2">
+
+                    <label
+                      htmlFor="charityPercentage"
+                      className="text-xs uppercase tracking-[0.12em] font-semibold text-[#303a34]"
+                    >
+                      Charity contribution
+                    </label>
+
+                    <span className="text-sm font-bold text-[#47775f]">
+                      {form.charityPercentage}%
+                    </span>
+
+                  </div>
+
+                  <p className="mb-4 text-xs leading-5 text-[#8a918b]">
+                    Minimum contribution is 10% of your subscription fee.
+                  </p>
+
+                  <input
+                    id="charityPercentage"
+                    type="range"
+                    name="charityPercentage"
+                    min="10"
+                    max="100"
+                    step="5"
+                    value={form.charityPercentage}
+                    onChange={handleChange}
+                    className="w-full accent-[#47775f]"
+                  />
+
+                  <div className="flex justify-between mt-2 text-[10px] text-[#8a918b]">
+                    <span>10%</span>
+                    <span>100%</span>
+                  </div>
+
+                  {/* Quick percentages */}
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
+
+                    {[10, 20, 30, 50, 75, 100].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            charityPercentage: value,
+                          }))
+                        }
+                        className={`rounded-xl px-2 py-2 text-xs font-semibold transition ${
+                          Number(form.charityPercentage) === value
+                            ? "bg-[#0d2117] text-white"
+                            : "bg-[#f3f1e8] text-[#47775f] border border-[#d0d6cd] hover:border-[#47775f]"
+                        }`}
+                      >
+                        {value}%
+                      </button>
+                    ))}
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Info */}
+              <div className="rounded-2xl border border-[#d5d9d0] bg-[#f3f1e8] px-4 py-3.5">
+
+                <div className="flex gap-3">
+
+                  <div className="w-7 h-7 shrink-0 rounded-full bg-[#dcebdc] text-[#47775f] flex items-center justify-center font-bold text-xs">
+                    ✓
+                  </div>
+
+                  <div>
+
+                    <p className="text-xs font-semibold text-[#303a34]">
+                      Your choice matters
+                    </p>
+
+                    <p className="mt-1 text-[11px] leading-5 text-[#8a918b]">
+                      You can update your charity preference later from
+                      your dashboard.
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
 
               {/* Error */}
               {error && (
@@ -395,7 +594,6 @@ function Signup() {
 
               )}
 
-
               {/* Success */}
               {success && (
 
@@ -405,11 +603,10 @@ function Signup() {
 
               )}
 
-
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || charitiesLoading}
                 className="group w-full rounded-2xl bg-[#0d2117] px-5 py-4 text-white font-semibold hover:bg-[#173c28] disabled:cursor-not-allowed disabled:opacity-50 transition-all"
               >
 
@@ -433,7 +630,6 @@ function Signup() {
 
             </form>
 
-
             {/* ================================================= */}
             {/* LOGIN */}
             {/* ================================================= */}
@@ -450,7 +646,6 @@ function Signup() {
 
             </div>
 
-
             <p className="text-center text-sm text-[#687169]">
 
               Already have an account?{" "}
@@ -463,7 +658,6 @@ function Signup() {
               </Link>
 
             </p>
-
 
             {/* Bottom info */}
             <div className="mt-10 pt-6 border-t border-[#d7dbd3]">

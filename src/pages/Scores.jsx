@@ -13,12 +13,36 @@ function Scores() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
     if (user) {
       fetchScores();
+      fetchSubscription();
     }
   }, [user]);
+
+  const isSubscriptionActive =
+    subscription?.status === "active";
+
+  const fetchSubscription = async () => {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("id, plan, status, current_period_end")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Subscription error:", error);
+      setSubscription(null);
+      return;
+    }
+
+    setSubscription(data);
+  };
+
 
   const fetchScores = async () => {
     const { data, error } = await supabase
@@ -42,6 +66,13 @@ function Scores() {
     e.preventDefault();
 
     setError("");
+
+    if (!isSubscriptionActive) {
+      setError(
+        "An active subscription is required to add a score. Please activate your membership."
+      );
+      return;
+    }
 
     const numericScore = Number(score);
 
@@ -138,9 +169,9 @@ function Scores() {
   const averageScore =
     scores.length > 0
       ? (
-          scores.reduce((total, item) => total + Number(item.score), 0) /
-          scores.length
-        ).toFixed(1)
+        scores.reduce((total, item) => total + Number(item.score), 0) /
+        scores.length
+      ).toFixed(1)
       : "—";
 
   const bestScore =
@@ -256,60 +287,133 @@ function Scores() {
 
         </section>
 
-       {/* ADD SCORE */}
-<section className="mt-10">
-  <div className="rounded-[1.75rem] bg-[#103523] overflow-hidden shadow-[0_20px_60px_rgba(13,33,23,0.12)]">
+        {/* ADD SCORE */}
+        <section className="mt-10">
+          <div className="rounded-[1.75rem] bg-[#103523] overflow-hidden shadow-[0_20px_60px_rgba(13,33,23,0.12)]">
 
-    {/* SECTION HEADER */}
-    <div className="px-6 sm:px-8 lg:px-9 pt-7 pb-6 border-b border-white/10">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* SECTION HEADER */}
+            <div className="px-6 sm:px-8 lg:px-9 pt-7 pb-6 border-b border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-[2px] bg-[#8ee276]" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-[2px] bg-[#8ee276]" />
 
-            <p className="text-[9px] uppercase tracking-[0.24em] text-[#8ee276] font-semibold">
-              Add performance
-            </p>
-          </div>
+                    <p className="text-[9px] uppercase tracking-[0.24em] text-[#8ee276] font-semibold">
+                      Add performance
+                    </p>
+                  </div>
 
-          <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-[-0.04em] text-white">
-            Record a new score
-          </h2>
-        </div>
+                  <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-[-0.04em] text-white">
+                    Record a new score
+                  </h2>
+                </div>
 
-        <div className="flex items-center gap-2 text-xs text-white/45">
-          <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
-          Stableford · 1–45
-        </div>
+                <div className="flex items-center gap-2 text-xs text-white/45">
+                  <span className="w-2 h-2 rounded-full bg-[#8ee276]" />
+                  Stableford · 1–45
+                </div>
 
-      </div>
-    </div>
+              </div>
+            </div>
 
 
-    {/* FORM */}
-    <div className="p-5 sm:p-7 lg:p-8">
+            {/* FORM */}
+            {/* CONTENT */}
+            <div className="p-5 sm:p-7 lg:p-8">
 
-      <form
-        onSubmit={handleAddScore}
-        className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end"
-      >
+              {!isSubscriptionActive ? (
+                /* NOT SUBSCRIBED */
+                <div className="rounded-2xl bg-white/[0.06] border border-white/10 p-6 sm:p-8">
 
-        {/* SCORE */}
-        <div className="md:col-span-4">
-          <label className="block mb-2 text-[9px] uppercase tracking-[0.18em] font-semibold text-white/45">
-            Stableford score
-          </label>
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-          <div className="relative">
-            <input
-              type="number"
-              min="1"
-              max="45"
-              value={score}
-              onChange={(e) => setScore(e.target.value)}
-              placeholder="36"
-              className="
+                    <div className="flex items-start gap-4">
+
+                      <div className="w-11 h-11 shrink-0 rounded-xl bg-[#f3e8cd] text-[#9a6b2f] flex items-center justify-center font-bold">
+                        !
+                      </div>
+
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.2em] text-[#8ee276] font-semibold">
+                          Membership required
+                        </p>
+
+                        <h3 className="mt-2 text-xl sm:text-2xl font-bold text-white tracking-[-0.03em]">
+                          Active subscription required
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-white/50 max-w-xl">
+                          Activate your membership to record Stableford scores
+                          and participate in the monthly Digital Heroes draw.
+                        </p>
+
+                        {subscription?.status && (
+                          <p className="mt-2 text-xs text-white/30">
+                            Current status:{" "}
+                            <span className="capitalize font-semibold">
+                              {subscription.status}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate("/dashboard/subscription")
+                      }
+                      className="
+            group
+            shrink-0
+            px-6 py-3.5
+            rounded-xl
+            bg-[#8ee276]
+            text-[#103523]
+            text-sm
+            font-bold
+            hover:bg-[#a0ed89]
+            hover:-translate-y-0.5
+            transition-all
+          "
+                    >
+                      Activate membership
+
+                      <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">
+                        →
+                      </span>
+                    </button>
+
+                  </div>
+
+                </div>
+
+              ) : (
+
+                /* SUBSCRIBED */
+                <>
+                  <form
+                    onSubmit={handleAddScore}
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end"
+                  >
+
+                    {/* SCORE */}
+                    <div className="md:col-span-4">
+                      <label className="block mb-2 text-[9px] uppercase tracking-[0.18em] font-semibold text-white/45">
+                        Stableford score
+                      </label>
+
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="1"
+                          max="45"
+                          value={score}
+                          onChange={(e) => setScore(e.target.value)}
+                          placeholder="36"
+                          className="
                 w-full h-14
                 px-4 pr-16
                 rounded-xl
@@ -324,26 +428,25 @@ function Scores() {
                 focus:ring-4
                 focus:ring-[#8ee276]/10
               "
-            />
+                        />
 
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] uppercase tracking-[0.14em] text-white/30">
-              / 45
-            </span>
-          </div>
-        </div>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] uppercase tracking-[0.14em] text-white/30">
+                          / 45
+                        </span>
+                      </div>
+                    </div>
 
+                    {/* DATE */}
+                    <div className="md:col-span-4">
+                      <label className="block mb-2 text-[9px] uppercase tracking-[0.18em] font-semibold text-white/45">
+                        Score date
+                      </label>
 
-        {/* DATE */}
-        <div className="md:col-span-4">
-          <label className="block mb-2 text-[9px] uppercase tracking-[0.18em] font-semibold text-white/45">
-            Score date
-          </label>
-
-          <input
-            type="date"
-            value={scoreDate}
-            onChange={(e) => setScoreDate(e.target.value)}
-            className="
+                      <input
+                        type="date"
+                        value={scoreDate}
+                        onChange={(e) => setScoreDate(e.target.value)}
+                        className="
               w-full h-14
               px-4
               rounded-xl
@@ -357,16 +460,15 @@ function Scores() {
               focus:ring-4
               focus:ring-[#8ee276]/10
             "
-          />
-        </div>
+                      />
+                    </div>
 
-
-        {/* BUTTON */}
-        <div className="md:col-span-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="
+                    {/* BUTTON */}
+                    <div className="md:col-span-4">
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="
               group
               w-full h-14
               rounded-xl
@@ -382,55 +484,55 @@ function Scores() {
               disabled:hover:translate-y-0
               flex items-center justify-center
             "
-          >
-            <span>
-              {saving ? "Saving score..." : "Add score"}
-            </span>
+                      >
+                        <span>
+                          {saving ? "Saving score..." : "Add score"}
+                        </span>
 
-            {!saving && (
-              <span className="ml-2 text-base group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            )}
-          </button>
-        </div>
+                        {!saving && (
+                          <span className="ml-2 text-base group-hover:translate-x-1 transition-transform">
+                            →
+                          </span>
+                        )}
+                      </button>
+                    </div>
 
-      </form>
+                  </form>
 
+                  {/* HELPER TEXT */}
+                  <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-      {/* HELPER TEXT */}
-      <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p className="text-[11px] text-white/30">
+                      Enter your Stableford points and the date you played.
+                    </p>
 
-        <p className="text-[11px] text-white/30">
-          Enter your Stableford points and the date you played.
-        </p>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-white/25">
+                      One score per date
+                    </p>
 
-        <p className="text-[10px] uppercase tracking-[0.12em] text-white/25">
-          One score per date
-        </p>
+                  </div>
 
-      </div>
+                  {/* ERROR */}
+                  {error && (
+                    <div className="mt-5 flex items-center gap-3 rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3.5 text-sm text-red-200">
+                      <span className="w-7 h-7 shrink-0 rounded-full bg-red-400/10 flex items-center justify-center font-semibold">
+                        !
+                      </span>
 
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </>
+              )}
 
-      {/* ERROR */}
-      {error && (
-        <div className="mt-5 flex items-center gap-3 rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3.5 text-sm text-red-200">
-          <span className="w-7 h-7 shrink-0 rounded-full bg-red-400/10 flex items-center justify-center font-semibold">
-            !
-          </span>
-
-          <span>{error}</span>
-        </div>
-      )}
-
-    </div>
-  </div>
-</section>
+            </div>
+          </div>
+        </section>
 
         {/* RECENT SCORES */}
         <section className="mt-12">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
-            <div> 
+            <div>
               <div className="flex items-center gap-2">
                 <span className="w-6 h-[2px] bg-[#47775f]" />
                 <p className="text-[9px] uppercase tracking-[0.23em] text-[#47775f] font-semibold">
@@ -467,22 +569,20 @@ function Scores() {
               {scores.map((item, index) => (
                 <div
                   key={item.id}
-                  className={`group rounded-2xl border p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 ${
-                    index === 0
+                  className={`group rounded-2xl border p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 ${index === 0
                       ? "bg-[#103523] border-[#103523] text-white shadow-[0_15px_40px_rgba(13,33,23,0.12)]"
                       : "bg-white border-[#d9ddd4] hover:border-[#b9c4b8] hover:shadow-[0_12px_35px_rgba(16,24,19,0.06)]"
-                  }`}
+                    }`}
                 >
                   <div className="grid grid-cols-12 items-center gap-3">
 
                     {/* INDEX */}
                     <div className="col-span-2 sm:col-span-1">
                       <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                          index === 0
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold ${index === 0
                             ? "bg-[#8ee276] text-[#103523]"
                             : "bg-[#f0f2ed] text-[#687169]"
-                        }`}
+                          }`}
                       >
                         {String(index + 1).padStart(2, "0")}
                       </div>
@@ -496,11 +596,10 @@ function Scores() {
                         </span>
 
                         <span
-                          className={`mb-1 text-[9px] uppercase tracking-[0.12em] ${
-                            index === 0
+                          className={`mb-1 text-[9px] uppercase tracking-[0.12em] ${index === 0
                               ? "text-white/40"
                               : "text-[#8a918b]"
-                          }`}
+                            }`}
                         >
                           Stableford
                         </span>
@@ -510,21 +609,19 @@ function Scores() {
                     {/* DATE */}
                     <div className="col-span-4 sm:col-span-5">
                       <p
-                        className={`text-[9px] uppercase tracking-[0.14em] ${
-                          index === 0
+                        className={`text-[9px] uppercase tracking-[0.14em] ${index === 0
                             ? "text-white/35"
                             : "text-[#8a918b]"
-                        }`}
+                          }`}
                       >
                         Recorded
                       </p>
 
                       <p
-                        className={`mt-1 text-sm font-medium ${
-                          index === 0
+                        className={`mt-1 text-sm font-medium ${index === 0
                             ? "text-white/80"
                             : "text-[#303a34]"
-                        }`}
+                          }`}
                       >
                         {new Date(
                           item.score_date
@@ -541,11 +638,10 @@ function Scores() {
                       <button
                         onClick={() => handleDelete(item.id)}
                         title="Delete score"
-                        className={`w-9 h-9 rounded-full flex items-center justify-center ml-auto transition-all ${
-                          index === 0
+                        className={`w-9 h-9 rounded-full flex items-center justify-center ml-auto transition-all ${index === 0
                             ? "text-white/40 hover:bg-white/10 hover:text-white"
                             : "text-[#a0a7a0] hover:bg-red-50 hover:text-red-600"
-                        }`}
+                          }`}
                       >
                         ×
                       </button>
@@ -629,11 +725,10 @@ function Scores() {
 function StatCard({ label, value, suffix, icon, highlight = false }) {
   return (
     <div
-      className={`rounded-2xl border p-5 sm:p-6 transition-all hover:-translate-y-0.5 ${
-        highlight
+      className={`rounded-2xl border p-5 sm:p-6 transition-all hover:-translate-y-0.5 ${highlight
           ? "bg-[#dfe7dc] border-[#c7d2c4]"
           : "bg-white border-[#d9ddd4]"
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between">
         <p className="text-[9px] uppercase tracking-[0.18em] text-[#8a918b] font-semibold">
@@ -641,11 +736,10 @@ function StatCard({ label, value, suffix, icon, highlight = false }) {
         </p>
 
         <span
-          className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm ${
-            highlight
+          className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm ${highlight
               ? "bg-[#8ee276] text-[#103523]"
               : "bg-[#eef1eb] text-[#47775f]"
-          }`}
+            }`}
         >
           {icon}
         </span>
