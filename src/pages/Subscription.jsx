@@ -59,260 +59,260 @@ function Subscription() {
     };
 
     const handleActivateSubscription = async () => {
-    if (!user) {
-        setError("You must be logged in.");
-        return;
-    }
-
-    setSaving(true);
-    setError("");
-    setMessage("");
-
-    try {
-        // 1. Check if user already has an active subscription
-        const {
-            data: existingSubscription,
-            error: checkError,
-        } = await supabase
-            .from("subscriptions")
-            .select("id, status")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .maybeSingle();
-
-        if (checkError) {
-            throw checkError;
-        }
-
-        if (existingSubscription) {
-            setError("You already have an active subscription.");
-            setSaving(false);
+        if (!user) {
+            setError("You must be logged in.");
             return;
         }
 
-        // 2. Validate selected plan
-        const selectedPlan = plans.find(
-            (item) => item.id === plan
-        );
+        setSaving(true);
+        setError("");
+        setMessage("");
 
-        if (!selectedPlan) {
-            throw new Error(
-                "Please select a valid subscription plan."
-            );
-        }
+        try {
+            // 1. Check if user already has an active subscription
+            const {
+                data: existingSubscription,
+                error: checkError,
+            } = await supabase
+                .from("subscriptions")
+                .select("id, status")
+                .eq("user_id", user.id)
+                .eq("status", "active")
+                .maybeSingle();
 
-        // 3. Load Razorpay Checkout script
-        if (!window.Razorpay) {
-            await new Promise((resolve, reject) => {
-                const script = document.createElement("script");
-
-                script.src =
-                    "https://checkout.razorpay.com/v1/checkout.js";
-
-                script.onload = resolve;
-
-                script.onerror = () => {
-                    reject(
-                        new Error(
-                            "Unable to load Razorpay Checkout."
-                        )
-                    );
-                };
-
-                document.body.appendChild(script);
-            });
-        }
-
-        // 4. Create Razorpay Order through Supabase Edge Function
-        const {
-            data: orderData,
-            error: functionError,
-        } = await supabase.functions.invoke(
-            "create-razorpay-order",
-            {
-                body: {
-                    plan,
-                    userId: user.id,
-                },
+            if (checkError) {
+                throw checkError;
             }
-        );
 
-        if (functionError) {
-            throw new Error(
-                functionError.message ||
-                "Unable to create Razorpay order."
+            if (existingSubscription) {
+                setError("You already have an active subscription.");
+                setSaving(false);
+                return;
+            }
+
+            // 2. Validate selected plan
+            const selectedPlan = plans.find(
+                (item) => item.id === plan
             );
-        }
 
-        if (!orderData?.orderId) {
-            throw new Error(
-                orderData?.error ||
-                "Unable to create Razorpay order."
-            );
-        }
-
-        // 5. Razorpay Checkout configuration
-        const options = {
-            key: orderData.keyId,
-
-            amount: orderData.amount,
-
-            currency: orderData.currency || "INR",
-
-            name: "Digital Heroes",
-
-            description:
-                selectedPlan.name +
-                " Digital Heroes Membership",
-
-            order_id: orderData.orderId,
-
-            prefill: {
-                name:
-                    user.user_metadata?.full_name ||
-                    "",
-                email: user.email || "",
-            },
-
-            notes: {
-                plan,
-                user_id: user.id,
-            },
-
-            theme: {
-                color: "#47775f",
-            },
-
-            handler: async function (response) {
-                console.log(
-                    "Razorpay payment successful:",
-                    response
+            if (!selectedPlan) {
+                throw new Error(
+                    "Please select a valid subscription plan."
                 );
+            }
 
-                /*
-                 * Razorpay returns:
-                 *
-                 * response.razorpay_payment_id
-                 * response.razorpay_order_id
-                 * response.razorpay_signature
-                 *
-                 * We will verify these on the server
-                 * in the next step.
-                 */
+            // 3. Load Razorpay Checkout script
+            if (!window.Razorpay) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement("script");
 
-                try {
-                    setMessage(
-                        "Payment received. Verifying payment..."
+                    script.src =
+                        "https://checkout.razorpay.com/v1/checkout.js";
+
+                    script.onload = resolve;
+
+                    script.onerror = () => {
+                        reject(
+                            new Error(
+                                "Unable to load Razorpay Checkout."
+                            )
+                        );
+                    };
+
+                    document.body.appendChild(script);
+                });
+            }
+
+            // 4. Create Razorpay Order through Supabase Edge Function
+            const {
+                data: orderData,
+                error: functionError,
+            } = await supabase.functions.invoke(
+                "create-razorpay-order",
+                {
+                    body: {
+                        plan,
+                        userId: user.id,
+                    },
+                }
+            );
+
+            if (functionError) {
+                throw new Error(
+                    functionError.message ||
+                    "Unable to create Razorpay order."
+                );
+            }
+
+            if (!orderData?.orderId) {
+                throw new Error(
+                    orderData?.error ||
+                    "Unable to create Razorpay order."
+                );
+            }
+
+            // 5. Razorpay Checkout configuration
+            const options = {
+                key: orderData.keyId,
+
+                amount: orderData.amount,
+
+                currency: orderData.currency || "INR",
+
+                name: "Digital Heroes",
+
+                description:
+                    selectedPlan.name +
+                    " Digital Heroes Membership",
+
+                order_id: orderData.orderId,
+
+                prefill: {
+                    name:
+                        user.user_metadata?.full_name ||
+                        "",
+                    email: user.email || "",
+                },
+
+                notes: {
+                    plan,
+                    user_id: user.id,
+                },
+
+                theme: {
+                    color: "#538CEA",
+                },
+
+                handler: async function (response) {
+                    console.log(
+                        "Razorpay payment successful:",
+                        response
                     );
 
-                    const {
-                        data: verifyData,
-                        error: verifyError,
-                    } = await supabase.functions.invoke(
-                        "verify-razorpay-payment",
-                        {
-                            body: {
-                                razorpay_payment_id:
-                                    response.razorpay_payment_id,
+                    /*
+                     * Razorpay returns:
+                     *
+                     * response.razorpay_payment_id
+                     * response.razorpay_order_id
+                     * response.razorpay_signature
+                     *
+                     * We will verify these on the server
+                     * in the next step.
+                     */
 
-                                razorpay_order_id:
-                                    response.razorpay_order_id,
+                    try {
+                        setMessage(
+                            "Payment received. Verifying payment..."
+                        );
 
-                                razorpay_signature:
-                                    response.razorpay_signature,
+                        const {
+                            data: verifyData,
+                            error: verifyError,
+                        } = await supabase.functions.invoke(
+                            "verify-razorpay-payment",
+                            {
+                                body: {
+                                    razorpay_payment_id:
+                                        response.razorpay_payment_id,
 
-                                userId: user.id,
+                                    razorpay_order_id:
+                                        response.razorpay_order_id,
 
-                                plan,
-                            },
+                                    razorpay_signature:
+                                        response.razorpay_signature,
+
+                                    userId: user.id,
+
+                                    plan,
+                                },
+                            }
+                        );
+
+                        if (verifyError) {
+                            throw new Error(
+                                verifyError.message ||
+                                "Payment verification failed."
+                            );
                         }
-                    );
 
-                    if (verifyError) {
-                        throw new Error(
-                            verifyError.message ||
-                            "Payment verification failed."
+                        if (!verifyData?.success) {
+                            throw new Error(
+                                verifyData?.error ||
+                                "Payment verification failed."
+                            );
+                        }
+
+                        setMessage(
+                            "Payment successful! Your membership is now active."
                         );
-                    }
 
-                    if (!verifyData?.success) {
-                        throw new Error(
-                            verifyData?.error ||
-                            "Payment verification failed."
+                        // Refresh subscription information
+                        await fetchSubscription();
+
+                    } catch (verifyErr) {
+                        console.error(
+                            "Payment verification error:",
+                            verifyErr
                         );
+
+                        setError(
+                            verifyErr?.message ||
+                            "Payment was received but verification failed."
+                        );
+
+                        setMessage("");
+                    } finally {
+                        setSaving(false);
                     }
+                },
 
-                    setMessage(
-                        "Payment successful! Your membership is now active."
-                    );
+                modal: {
+                    ondismiss: function () {
+                        console.log(
+                            "Razorpay Checkout closed."
+                        );
 
-                    // Refresh subscription information
-                    await fetchSubscription();
+                        setSaving(false);
+                    },
+                },
+            };
 
-                } catch (verifyErr) {
+            // 6. Open Razorpay Checkout
+            const razorpay = new window.Razorpay(options);
+
+            razorpay.on(
+                "payment.failed",
+                function (response) {
                     console.error(
-                        "Payment verification error:",
-                        verifyErr
+                        "Razorpay payment failed:",
+                        response
                     );
 
                     setError(
-                        verifyErr?.message ||
-                        "Payment was received but verification failed."
+                        response?.error?.description ||
+                        "Payment failed. Please try again."
                     );
 
-                    setMessage("");
-                } finally {
                     setSaving(false);
                 }
-            },
+            );
 
-            modal: {
-                ondismiss: function () {
-                    console.log(
-                        "Razorpay Checkout closed."
-                    );
+            razorpay.open();
 
-                    setSaving(false);
-                },
-            },
-        };
+        } catch (err) {
+            console.error(
+                "Subscription payment error:",
+                err
+            );
 
-        // 6. Open Razorpay Checkout
-        const razorpay = new window.Razorpay(options);
+            setError(
+                err?.message ||
+                "Unable to start payment."
+            );
 
-        razorpay.on(
-            "payment.failed",
-            function (response) {
-                console.error(
-                    "Razorpay payment failed:",
-                    response
-                );
-
-                setError(
-                    response?.error?.description ||
-                    "Payment failed. Please try again."
-                );
-
-                setSaving(false);
-            }
-        );
-
-        razorpay.open();
-
-    } catch (err) {
-        console.error(
-            "Subscription payment error:",
-            err
-        );
-
-        setError(
-            err?.message ||
-            "Unable to start payment."
-        );
-
-        setSaving(false);
-    }
-};
+            setSaving(false);
+        }
+    };
 
     const handleCancel = async () => {
         if (!subscription?.id) {
@@ -501,11 +501,10 @@ function Subscription() {
                                         <div className="mt-5 flex items-center gap-3">
 
                                             <span
-                                                className={`w-3 h-3 rounded-full ${
-                                                    subscription.status === "active"
+                                                className={`w-3 h-3 rounded-full ${subscription.status === "active"
                                                         ? "bg-[#8ee276]"
                                                         : "bg-[#c27b5d]"
-                                                }`}
+                                                    }`}
                                             />
 
                                             <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.04em] capitalize">
@@ -666,10 +665,9 @@ function Subscription() {
                                             border p-7 sm:p-8 min-h-[360px]
                                             transition-all duration-300
                                             hover:-translate-y-1
-                                            ${
-                                                isSelected
-                                                    ? "bg-[#103523] border-[#103523] text-white shadow-[0_20px_50px_rgba(13,33,23,0.14)]"
-                                                    : "bg-white border-[#d9ddd4] hover:border-[#b9c4b8] hover:shadow-[0_18px_45px_rgba(16,24,19,0.06)]"
+                                            ${isSelected
+                                                ? "bg-[#103523] border-[#103523] text-white shadow-[0_20px_50px_rgba(13,33,23,0.14)]"
+                                                : "bg-white border-[#d9ddd4] hover:border-[#b9c4b8] hover:shadow-[0_18px_45px_rgba(16,24,19,0.06)]"
                                             }
                                         `}
                                     >
@@ -684,10 +682,9 @@ function Subscription() {
                                                     className={`
                                                         inline-flex items-center justify-center
                                                         w-9 h-9 rounded-xl text-[10px] font-bold
-                                                        ${
-                                                            isSelected
-                                                                ? "bg-[#8ee276] text-[#103523]"
-                                                                : "bg-[#eef1eb] text-[#47775f]"
+                                                        ${isSelected
+                                                            ? "bg-[#8ee276] text-[#103523]"
+                                                            : "bg-[#eef1eb] text-[#47775f]"
                                                         }
                                                     `}
                                                 >
@@ -697,10 +694,9 @@ function Subscription() {
                                                 <p
                                                     className={`
                                                         mt-5 text-[9px] uppercase tracking-[0.2em] font-semibold
-                                                        ${
-                                                            isSelected
-                                                                ? "text-[#8ee276]"
-                                                                : "text-[#47775f]"
+                                                        ${isSelected
+                                                            ? "text-[#8ee276]"
+                                                            : "text-[#47775f]"
                                                         }
                                                     `}
                                                 >
@@ -712,10 +708,9 @@ function Subscription() {
                                             <span
                                                 className={`
                                                     w-7 h-7 rounded-full border flex items-center justify-center
-                                                    ${
-                                                        isSelected
-                                                            ? "border-[#8ee276] bg-[#8ee276]"
-                                                            : "border-[#c9d0c6]"
+                                                    ${isSelected
+                                                        ? "border-[#8ee276] bg-[#8ee276]"
+                                                        : "border-[#c9d0c6]"
                                                     }
                                                 `}
                                             >
@@ -742,10 +737,9 @@ function Subscription() {
                                                 <span
                                                     className={`
                                                         mb-2 text-sm
-                                                        ${
-                                                            isSelected
-                                                                ? "text-white/40"
-                                                                : "text-[#687169]"
+                                                        ${isSelected
+                                                            ? "text-white/40"
+                                                            : "text-[#687169]"
                                                         }
                                                     `}
                                                 >
@@ -757,10 +751,9 @@ function Subscription() {
                                             <p
                                                 className={`
                                                     mt-4 text-sm
-                                                    ${
-                                                        isSelected
-                                                            ? "text-white/45"
-                                                            : "text-[#687169]"
+                                                    ${isSelected
+                                                        ? "text-white/45"
+                                                        : "text-[#687169]"
                                                     }
                                                 `}
                                             >
@@ -776,10 +769,9 @@ function Subscription() {
                                             className={`
                                                 absolute left-7 right-7 bottom-7
                                                 pt-5 border-t
-                                                ${
-                                                    isSelected
-                                                        ? "border-white/10"
-                                                        : "border-[#e1e4de]"
+                                                ${isSelected
+                                                    ? "border-white/10"
+                                                    : "border-[#e1e4de]"
                                                 }
                                             `}
                                         >
@@ -1025,20 +1017,18 @@ function Benefit({ text, selected }) {
         <div
             className={`
                 flex items-center gap-2 text-xs
-                ${
-                    selected
-                        ? "text-white/55"
-                        : "text-[#687169]"
+                ${selected
+                    ? "text-white/55"
+                    : "text-[#687169]"
                 }
             `}
         >
             <span
                 className={`
                     w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold
-                    ${
-                        selected
-                            ? "bg-[#8ee276] text-[#103523]"
-                            : "bg-[#e5ebe2] text-[#47775f]"
+                    ${selected
+                        ? "bg-[#8ee276] text-[#103523]"
+                        : "bg-[#e5ebe2] text-[#47775f]"
                     }
                 `}
             >
