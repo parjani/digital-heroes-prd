@@ -15,7 +15,24 @@ serve(async (req) => {
   }
 
   try {
-    const { plan } = await req.json();
+    // Get plan and logged-in user ID from React
+    const { plan, userId } = await req.json();
+
+    // Make sure user ID is provided
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          error: "User ID is required.",
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     // Decide the amount on the server.
     // Razorpay uses paise, not rupees.
@@ -40,12 +57,14 @@ serve(async (req) => {
       );
     }
 
-    // These values will be stored securely in Supabase Edge Function secrets.
+    // Razorpay credentials stored in Supabase Edge Function secrets
     const keyId = Deno.env.get("RAZORPAY_KEY_ID");
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
 
     if (!keyId || !keySecret) {
-      throw new Error("Razorpay credentials are not configured.");
+      throw new Error(
+        "Razorpay credentials are not configured."
+      );
     }
 
     // Razorpay API authentication
@@ -63,19 +82,26 @@ serve(async (req) => {
         body: JSON.stringify({
           amount,
           currency: "INR",
+
           receipt: `dh_${Date.now()}`,
+
           notes: {
             plan,
+            user_id: userId,
             source: "digital-heroes",
           },
         }),
       }
     );
 
-    const razorpayData = await razorpayResponse.json();
+    const razorpayData =
+      await razorpayResponse.json();
 
     if (!razorpayResponse.ok) {
-      console.error("Razorpay error:", razorpayData);
+      console.error(
+        "Razorpay order creation error:",
+        razorpayData
+      );
 
       return new Response(
         JSON.stringify({
@@ -93,7 +119,7 @@ serve(async (req) => {
       );
     }
 
-    // Send only safe information back to React.
+    // Send only safe information to React.
     // NEVER send the Razorpay secret to the frontend.
     return new Response(
       JSON.stringify({
@@ -112,7 +138,10 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Create Razorpay order error:", error);
+    console.error(
+      "Create Razorpay order error:",
+      error
+    );
 
     return new Response(
       JSON.stringify({

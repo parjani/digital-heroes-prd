@@ -59,88 +59,260 @@ function Subscription() {
     };
 
     const handleActivateSubscription = async () => {
-        if (!user) {
-            setError("You must be logged in.");
+    if (!user) {
+        setError("You must be logged in.");
+        return;
+    }
+
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+        // 1. Check if user already has an active subscription
+        const {
+            data: existingSubscription,
+            error: checkError,
+        } = await supabase
+            .from("subscriptions")
+            .select("id, status")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .maybeSingle();
+
+        if (checkError) {
+            throw checkError;
+        }
+
+        if (existingSubscription) {
+            setError("You already have an active subscription.");
+            setSaving(false);
             return;
         }
 
-        setSaving(true);
-        setError("");
-        setMessage("");
+        // 2. Validate selected plan
+        const selectedPlan = plans.find(
+            (item) => item.id === plan
+        );
 
-        try {
-            const {
-                data: existingSubscription,
-                error: checkError,
-            } = await supabase
-                .from("subscriptions")
-                .select("id, status")
-                .eq("user_id", user.id)
-                .eq("status", "active")
-                .maybeSingle();
-
-            if (checkError) {
-                throw checkError;
-            }
-
-            if (existingSubscription) {
-                setError("You already have an active subscription.");
-                setSaving(false);
-                return;
-            }
-
-            const selectedPlan = plans.find(
-                (item) => item.id === plan
+        if (!selectedPlan) {
+            throw new Error(
+                "Please select a valid subscription plan."
             );
-
-            if (!selectedPlan) {
-                throw new Error("Please select a valid subscription plan.");
-            }
-
-            const {
-                data: paymentData,
-                error: functionError,
-            } = await supabase.functions.invoke(
-                "create-razorpay-payment-link",
-                {
-                    body: {
-                        plan,
-                        userId: user.id,
-                        email: user.email,
-                    },
-                }
-            );
-
-            if (functionError) {
-                throw new Error(
-                    functionError.message ||
-                    "Unable to create payment link."
-                );
-            }
-
-            if (!paymentData?.paymentUrl) {
-                throw new Error(
-                    paymentData?.error ||
-                    "Unable to create Razorpay payment link."
-                );
-            }
-
-            // Redirect to Razorpay hosted payment page
-            window.location.href = paymentData.paymentUrl;
-        } catch (err) {
-            console.error(
-                "Subscription payment error:",
-                err
-            );
-
-            setError(
-                err?.message ||
-                "Unable to start payment."
-            );
-
-            setSaving(false);
         }
-    };
+
+        // 3. Load Razorpay Checkout script
+        if (!window.Razorpay) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+
+                script.src =
+                    "https://checkout.razorpay.com/v1/checkout.js";
+
+                script.onload = resolve;
+
+                script.onerror = () => {
+                    reject(
+                        new Error(
+                            "Unable to load Razorpay Checkout."
+                        )
+                    );
+                };
+
+                document.body.appendChild(script);
+            });
+        }
+
+        // 4. Create Razorpay Order through Supabase Edge Function
+        const {
+            data: orderData,
+            error: functionError,
+        } = await supabase.functions.invoke(
+            "create-razorpay-order",
+            {
+                body: {
+                    plan,
+                    userId: user.id,
+                },
+            }
+        );
+
+        if (functionError) {
+            throw new Error(
+                functionError.message ||
+                "Unable to create Razorpay order."
+            );
+        }
+
+        if (!orderData?.orderId) {
+            throw new Error(
+                orderData?.error ||
+                "Unable to create Razorpay order."
+            );
+        }
+
+        // 5. Razorpay Checkout configuration
+        const options = {
+            key: orderData.keyId,
+
+            amount: orderData.amount,
+
+            currency: orderData.currency || "INR",
+
+            name: "Digital Heroes",
+
+            description:
+                selectedPlan.name +
+                " Digital Heroes Membership",
+
+            order_id: orderData.orderId,
+
+            prefill: {
+                name:
+                    user.user_metadata?.full_name ||
+                    "",
+                email: user.email || "",
+            },
+
+            notes: {
+                plan,
+                user_id: user.id,
+            },
+
+            theme: {
+                color: "#47775f",
+            },
+
+            handler: async function (response) {
+                console.log(
+                    "Razorpay payment successful:",
+                    response
+                );
+
+                /*
+                 * Razorpay returns:
+                 *
+                 * response.razorpay_payment_id
+                 * response.razorpay_order_id
+                 * response.razorpay_signature
+                 *
+                 * We will verify these on the server
+                 * in the next step.
+                 */
+
+                try {
+                    setMessage(
+                        "Payment received. Verifying payment..."
+                    );
+
+                    const {
+                        data: verifyData,
+                        error: verifyError,
+                    } = await supabase.functions.invoke(
+                        "verify-razorpay-payment",
+                        {
+                            body: {
+                                razorpay_payment_id:
+                                    response.razorpay_payment_id,
+
+                                razorpay_order_id:
+                                    response.razorpay_order_id,
+
+                                razorpay_signature:
+                                    response.razorpay_signature,
+
+                                userId: user.id,
+
+                                plan,
+                            },
+                        }
+                    );
+
+                    if (verifyError) {
+                        throw new Error(
+                            verifyError.message ||
+                            "Payment verification failed."
+                        );
+                    }
+
+                    if (!verifyData?.success) {
+                        throw new Error(
+                            verifyData?.error ||
+                            "Payment verification failed."
+                        );
+                    }
+
+                    setMessage(
+                        "Payment successful! Your membership is now active."
+                    );
+
+                    // Refresh subscription information
+                    await fetchSubscription();
+
+                } catch (verifyErr) {
+                    console.error(
+                        "Payment verification error:",
+                        verifyErr
+                    );
+
+                    setError(
+                        verifyErr?.message ||
+                        "Payment was received but verification failed."
+                    );
+
+                    setMessage("");
+                } finally {
+                    setSaving(false);
+                }
+            },
+
+            modal: {
+                ondismiss: function () {
+                    console.log(
+                        "Razorpay Checkout closed."
+                    );
+
+                    setSaving(false);
+                },
+            },
+        };
+
+        // 6. Open Razorpay Checkout
+        const razorpay = new window.Razorpay(options);
+
+        razorpay.on(
+            "payment.failed",
+            function (response) {
+                console.error(
+                    "Razorpay payment failed:",
+                    response
+                );
+
+                setError(
+                    response?.error?.description ||
+                    "Payment failed. Please try again."
+                );
+
+                setSaving(false);
+            }
+        );
+
+        razorpay.open();
+
+    } catch (err) {
+        console.error(
+            "Subscription payment error:",
+            err
+        );
+
+        setError(
+            err?.message ||
+            "Unable to start payment."
+        );
+
+        setSaving(false);
+    }
+};
 
     const handleCancel = async () => {
         if (!subscription?.id) {
